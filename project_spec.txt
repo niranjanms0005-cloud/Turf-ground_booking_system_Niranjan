@@ -1,0 +1,128 @@
+Turf / Ground Booking System
+------------------------------
+1. PROJECT OVERVIEW
+
+Project Title: Turf / Ground Booking System
+Tech Stack: MERN (MongoDB, Express, React, Node.js)
+Development Tool: Cursor IDE
+A full-stack web application designed to automate sports turf and ground reservations.
+--------------------------------------------------------------------------------------
+2. PROBLEM STATEMENT
+
+Currently, turf booking is handled manually through phone calls or direct visits.
+Users face difficulty in checking slot availability and often experience double booking.
+Payments are usually handled offline, causing confusion and lack of proper records.
+There is no centralized system to track bookings and manage schedules efficiently.
+----------------------------------------------------------------------------------
+3. PROPOSED SOLUTION
+
+A web application where users can view available turfs and real-time slot availability.
+Users can book slots and make online payments directly from the platform.
+Ground Managers manage turf details and slot schedules.
+Payment Managers verify transactions and handle refunds.
+Admins monitor the entire system and manage users and system operations.
+----------------------------------------------------------------------
+4. USER ROLES & PERMISSIONS
+
+A. User (Player / Customer):
+
+Can Register and Login.
+Can View available Turfs and Grounds.
+Can Check real-time slot availability.
+Can Select date and time slots.
+Can Book a turf.
+Can Make online payments.
+Can View booking history and booking status.
+
+B. Ground Manager:
+
+Can Login securely.
+Can Add/Edit/Delete Ground details (Name, Location, Price, Slots).
+Can Manage available time slots.
+Can View booking requests.
+Can Approve or Reject bookings.
+
+C. Payment Manager:
+
+Can Login securely.
+Can Verify payment transactions.
+Can Manage failed payments and refunds.
+Can Maintain payment records.
+Can Resolve payment-related issues.
+
+D. Admin:
+
+Can Login (Secure Admin Dashboard).
+Can Manage Users and role assignments.
+Can View all bookings and payments.
+Can Handle disputes and system monitoring.
+Can Maintain overall system control.
+-----------------------------------------
+5. DATABASE STRUCTURE (Schemas)
+
+A. User Schema:
+
+Name (String)
+Email (String, Unique)
+Password (Hashed)
+Role (String: 'user', 'admin', 'groundManager', 'paymentManager')
+
+B. Ground Schema:
+
+GroundName (String)
+Location (String)
+PricePerSlot (Number)
+AvailableSlots (Array)
+ManagerID (Reference to User)
+IsActive (Boolean)
+
+C. Booking Schema:
+
+UserID (Reference to User)
+GroundID (Reference to Ground)
+BookingDate (Date)
+TimeSlot (String)
+Status (String: 'Pending', 'Approved', 'Rejected')
+PaymentStatus (String: 'Paid', 'Unpaid')
+CreatedAt (Timestamp)
+
+D. Payment Schema:
+
+BookingID (Reference to Booking)
+Amount (Number)
+PaymentMethod (String)
+TransactionID (String)
+PaymentStatus (String: 'Success', 'Failed', 'Refunded')
+VerifiedBy (Payment Manager Reference)
+CreatedAt (Timestamp)
+--------------------------------------------------------
+6. FEATURE WORKFLOW (The "User Journey")
+
+Login: User logs in and lands on the Turf Listing Page.
+Browse: User views available turfs and free time slots (fetched from DB).
+Booking: User selects a ground, date, and time slot and submits booking.
+Database: A new Booking document is created in MongoDB with status Pending.
+Payment: User completes online payment.
+Verification: Payment Manager verifies the transaction.
+Approval: Ground Manager approves or rejects the booking.
+Confirmation: User receives booking confirmation and updated status.
+-------------------------------------------------------------------
+7. API ENDPOINTS (The URL Rules)
+
+Authentication
+POST /api/auth/register → Create new user
+POST /api/auth/login → Login user
+Ground Management
+GET /api/grounds → Get list of grounds
+POST /api/grounds → Create new ground (Ground Manager/Admin)
+PUT /api/grounds/:id → Update ground details
+DELETE /api/grounds/:id → Delete ground
+Booking
+POST /api/bookings → Create new booking
+GET /api/bookings/user → View user bookings
+PUT /api/bookings/:id → Approve / Reject booking
+Payment
+POST /api/payments → Create payment record
+GET /api/payments → View payments
+PUT /api/payments/verify/:id → Verify payment
+------------------------------------------------

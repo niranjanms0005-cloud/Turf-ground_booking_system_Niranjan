@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
+const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
 
@@ -15,10 +16,13 @@ app.use(express.json());
 // Connect to database
 connectDB();
 
-// Routes
+// Health check route
 app.get('/', (req, res) => {
   res.json({ message: 'API is running' });
 });
+
+// API routes
+app.use('/api/auth', authRoutes);
 
 // Error Handler (must be after all routes)
 app.use(errorHandler);

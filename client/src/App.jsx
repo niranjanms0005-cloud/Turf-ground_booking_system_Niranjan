@@ -8,6 +8,7 @@ import BookGround from './pages/BookGround.jsx';
 import MyBookings from './pages/MyBookings.jsx';
 import Payment from './pages/Payment.jsx';
 import PaymentManagerDashboard from './pages/PaymentManagerDashboard.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
 
 function App() {
   const { user, isLoggedIn, logout } = useAuth();
@@ -47,7 +48,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/ground-manager" element={<GroundManagerDashboard />} />
         <Route path="/payment-manager" element={<PaymentManagerDashboard />} />
-        <Route path="/admin" element={<div>Admin Dashboard (coming later)</div>} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </div>
   );

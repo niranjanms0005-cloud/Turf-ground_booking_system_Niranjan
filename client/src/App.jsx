@@ -9,6 +9,7 @@ import MyBookings from './pages/MyBookings.jsx';
 import Payment from './pages/Payment.jsx';
 import PaymentManagerDashboard from './pages/PaymentManagerDashboard.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import Home from './pages/Home.jsx';
 
 function App() {
   const { user, isLoggedIn, logout } = useAuth();
@@ -39,7 +40,7 @@ function App() {
       </nav>
 
       <Routes>
-        <Route path="/" element={<h1>Frontend Running</h1>} />
+        <Route path="/" element={<Home />} />
         <Route path="/grounds" element={<GroundList />} />
         <Route path="/book/:groundId" element={<BookGround />} />
         <Route path="/my-bookings" element={<MyBookings />} />

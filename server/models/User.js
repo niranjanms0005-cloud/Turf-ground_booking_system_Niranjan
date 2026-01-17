@@ -14,10 +14,26 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    phone: {
+      type: String,
+      required: true,
+      trim: true,
+      // Validation: exactly 10 digits
+      validate: {
+        validator: function(v) {
+          // Remove non-digits and check length
+          const digitsOnly = v.replace(/\D/g, '');
+          return digitsOnly.length === 10;
+        },
+        message: 'Phone number must be exactly 10 digits',
+      },
+    },
     password: {
       type: String,
       required: true,
-      minlength: 6,
+      // Password requirements enforced in controller validation
+      // Minimum 8 characters with uppercase, lowercase, and number
+      minlength: 8,
     },
     role: {
       type: String,

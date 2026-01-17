@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { getDashboardPath } from '../utils/roleUtils';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -31,7 +32,9 @@ function Login() {
       } else {
         const { token, ...userData } = data;
         login(userData, token);
-        navigate('/');
+        // Redirect to role-specific dashboard
+        const dashboardPath = getDashboardPath(userData.role);
+        navigate(dashboardPath);
       }
     } catch (err) {
       setError('Something went wrong. Please try again.');

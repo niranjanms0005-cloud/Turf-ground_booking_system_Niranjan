@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { getDashboardPath } from '../utils/roleUtils';
 
 // For demo purposes, allow selecting role when registering
 const ROLE_OPTIONS = [
@@ -41,7 +42,9 @@ function Register() {
       } else {
         const { token, ...userData } = data;
         login(userData, token);
-        navigate('/');
+        // Redirect to role-specific dashboard
+        const dashboardPath = getDashboardPath(userData.role);
+        navigate(dashboardPath);
       }
     } catch (err) {
       setError('Something went wrong. Please try again.');

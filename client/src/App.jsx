@@ -1,4 +1,4 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
@@ -18,14 +18,26 @@ function App() {
       <div>
       <nav style={{ padding: '1rem', borderBottom: '1px solid #ddd', marginBottom: '1rem' }}>
         <Link to="/" style={{ marginRight: '1rem' }}>Home</Link>
-        <Link to="/grounds" style={{ marginRight: '1rem' }}>Grounds</Link>
-        <Link to="/ground-manager" style={{ marginRight: '1rem' }}>Ground Manager</Link>
-        <Link to="/payment-manager" style={{ marginRight: '1rem' }}>Payment Manager</Link>
-        <Link to="/admin" style={{ marginRight: '1rem' }}>Admin</Link>
+
+        {/* Show navigation links based on role, only after login */}
+        {isLoggedIn && user?.role === 'user' && (
+          <>
+            <Link to="/grounds" style={{ marginRight: '1rem' }}>Grounds</Link>
+            <Link to="/my-bookings" style={{ marginRight: '1rem' }}>My Bookings</Link>
+          </>
+        )}
+        {isLoggedIn && user?.role === 'groundManager' && (
+          <Link to="/ground-manager" style={{ marginRight: '1rem' }}>Ground Manager</Link>
+        )}
+        {isLoggedIn && user?.role === 'paymentManager' && (
+          <Link to="/payment-manager" style={{ marginRight: '1rem' }}>Payment Manager</Link>
+        )}
+        {isLoggedIn && user?.role === 'admin' && (
+          <Link to="/admin" style={{ marginRight: '1rem' }}>Admin</Link>
+        )}
 
         {isLoggedIn ? (
           <>
-            <Link to="/my-bookings" style={{ marginRight: '1rem' }}>My Bookings</Link>
             <span style={{ marginRight: '1rem' }}>
               Logged in as: {user?.name} ({user?.role})
             </span>
@@ -41,15 +53,66 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/grounds" element={<GroundList />} />
-        <Route path="/book/:groundId" element={<BookGround />} />
-        <Route path="/my-bookings" element={<MyBookings />} />
-        <Route path="/payment/:bookingId" element={<Payment />} />
+        {/* User routes: only accessible after login as regular user */}
+        <Route
+          path="/grounds"
+          element={
+            isLoggedIn && user?.role === 'user'
+              ? <GroundList />
+              : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/book/:groundId"
+          element={
+            isLoggedIn && user?.role === 'user'
+              ? <BookGround />
+              : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/my-bookings"
+          element={
+            isLoggedIn && user?.role === 'user'
+              ? <MyBookings />
+              : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/payment/:bookingId"
+          element={
+            isLoggedIn && user?.role === 'user'
+              ? <Payment />
+              : <Navigate to="/login" replace />
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/ground-manager" element={<GroundManagerDashboard />} />
-        <Route path="/payment-manager" element={<PaymentManagerDashboard />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        {/* Role-specific dashboards: only accessible after login with correct role */}
+        <Route
+          path="/ground-manager"
+          element={
+            isLoggedIn && user?.role === 'groundManager'
+              ? <GroundManagerDashboard />
+              : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/payment-manager"
+          element={
+            isLoggedIn && user?.role === 'paymentManager'
+              ? <PaymentManagerDashboard />
+              : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            isLoggedIn && user?.role === 'admin'
+              ? <AdminDashboard />
+              : <Navigate to="/login" replace />
+          }
+        />
       </Routes>
       </div>
   );

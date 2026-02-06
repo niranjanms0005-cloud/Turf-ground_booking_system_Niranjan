@@ -1,7 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
-import PublicLayout from './layouts/PublicLayout.jsx';
-import AuthenticatedLayout from './layouts/AuthenticatedLayout.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import GroundList from './pages/GroundList.jsx';
@@ -14,19 +12,47 @@ import AdminDashboard from './pages/AdminDashboard.jsx';
 import Home from './pages/Home.jsx';
 
 function App() {
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
 
   return (
-    <Routes>
-      {/* Public layout: Home, Login, Register */}
-      <Route element={<PublicLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Route>
+      <div>
+      <nav style={{ padding: '1rem', borderBottom: '1px solid #ddd', marginBottom: '1rem' }}>
+        <Link to="/" style={{ marginRight: '1rem' }}>Home</Link>
 
-      {/* Authenticated layout: all protected routes with role-specific navbar */}
-      <Route element={<AuthenticatedLayout />}>
+        {/* Show navigation links based on role, only after login */}
+        {isLoggedIn && user?.role === 'user' && (
+          <>
+            <Link to="/grounds" style={{ marginRight: '1rem' }}>Grounds</Link>
+            <Link to="/my-bookings" style={{ marginRight: '1rem' }}>My Bookings</Link>
+          </>
+        )}
+        {isLoggedIn && user?.role === 'groundManager' && (
+          <Link to="/ground-manager" style={{ marginRight: '1rem' }}>Ground Manager</Link>
+        )}
+        {isLoggedIn && user?.role === 'paymentManager' && (
+          <Link to="/payment-manager" style={{ marginRight: '1rem' }}>Payment Manager</Link>
+        )}
+        {isLoggedIn && user?.role === 'admin' && (
+          <Link to="/admin" style={{ marginRight: '1rem' }}>Admin</Link>
+        )}
+
+        {isLoggedIn ? (
+          <>
+            <span style={{ marginRight: '1rem' }}>
+              Logged in as: {user?.name} ({user?.role})
+            </span>
+            <button onClick={logout}>Logout</button>
+          </>
+        ) : (
+          <>
+            <Link to="/login" style={{ marginRight: '1rem' }}>Login</Link>
+            <Link to="/register">Register</Link>
+          </>
+        )}
+      </nav>
+
+      <Routes>
+        <Route path="/" element={<Home />} />
         {/* User routes: only accessible after login as regular user */}
         <Route
           path="/grounds"
@@ -60,7 +86,8 @@ function App() {
               : <Navigate to="/login" replace />
           }
         />
-
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         {/* Role-specific dashboards: only accessible after login with correct role */}
         <Route
           path="/ground-manager"
@@ -86,8 +113,8 @@ function App() {
               : <Navigate to="/login" replace />
           }
         />
-      </Route>
-    </Routes>
+      </Routes>
+      </div>
   );
 }
 

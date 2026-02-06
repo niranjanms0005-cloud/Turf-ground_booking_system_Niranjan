@@ -209,7 +209,7 @@ function Register() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: name.trim(), email: email.trim().toLowerCase(), phone, password, role }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim().toLowerCase(), phone, password, confirmPassword, role }),
       });
 
       const data = await res.json();

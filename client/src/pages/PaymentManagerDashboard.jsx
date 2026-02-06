@@ -162,7 +162,17 @@ function PaymentManagerDashboard() {
                     <strong>{payment.paymentStatus}</strong>
                   </td>
                   <td style={{ padding: '0.75rem' }}>
-                    {payment.verifiedBy ? (
+                    {payment.paymentStatus === 'Refunded' ? (
+                      <div>
+                        <div style={{ fontWeight: '600' }}>Refunded</div>
+                        <div style={{ marginTop: '0.25rem' }}>
+                          By: {payment.verifiedBy?.name || 'N/A'}
+                        </div>
+                        <div style={{ color: '#666', fontSize: '0.85rem' }}>
+                          At: {payment.updatedAt ? new Date(payment.updatedAt).toLocaleString() : 'N/A'}
+                        </div>
+                      </div>
+                    ) : payment.verifiedBy ? (
                       <div>
                         {payment.verifiedBy.name || 'N/A'}
                         <br />

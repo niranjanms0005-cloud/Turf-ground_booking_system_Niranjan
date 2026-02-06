@@ -9,6 +9,7 @@ import MyBookings from './pages/MyBookings.jsx';
 import Payment from './pages/Payment.jsx';
 import PaymentManagerDashboard from './pages/PaymentManagerDashboard.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import MyPayments from './pages/MyPayments.jsx';
 import Home from './pages/Home.jsx';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
           <>
             <Link to="/grounds" style={{ marginRight: '1rem' }}>Grounds</Link>
             <Link to="/my-bookings" style={{ marginRight: '1rem' }}>My Bookings</Link>
+            <Link to="/my-payments" style={{ marginRight: '1rem' }}>My Payments</Link>
           </>
         )}
         {isLoggedIn && user?.role === 'groundManager' && (
@@ -83,6 +85,14 @@ function App() {
           element={
             isLoggedIn && user?.role === 'user'
               ? <Payment />
+              : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/my-payments"
+          element={
+            isLoggedIn && user?.role === 'user'
+              ? <MyPayments />
               : <Navigate to="/login" replace />
           }
         />

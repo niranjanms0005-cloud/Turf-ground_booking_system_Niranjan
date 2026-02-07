@@ -49,14 +49,9 @@ const createPayment = async (req, res) => {
     await payment.populate('bookingID.userID', 'name email');
     await payment.populate('bookingID.groundID', 'groundName location');
 
-    // map convenience fields for frontend: payment.userId and payment.groundId
-    const paymentObj = payment.toObject();
-    paymentObj.userId = paymentObj.bookingID?.userID || null;
-    paymentObj.groundId = paymentObj.bookingID?.groundID || null;
-
     res.status(201).json({
       success: true,
-      data: paymentObj,
+      data: payment,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -72,19 +67,11 @@ const getUserPayments = async (req, res) => {
     const userBookings = await Booking.find({ userID: req.user._id });
     const bookingIds = userBookings.map((b) => b._id);
 
-    const paymentsRaw = await Payment.find({ bookingID: { $in: bookingIds } })
+    const payments = await Payment.find({ bookingID: { $in: bookingIds } })
       .populate('bookingID')
-      .populate('bookingID.userID', 'name email')
       .populate('bookingID.groundID', 'groundName location')
       .populate('verifiedBy', 'name email')
       .sort({ createdAt: -1 });
-
-    const payments = paymentsRaw.map((p) => {
-      const obj = p.toObject();
-      obj.userId = obj.bookingID?.userID || null;
-      obj.groundId = obj.bookingID?.groundID || null;
-      return obj;
-    });
 
     res.json({
       success: true,
@@ -101,19 +88,12 @@ const getUserPayments = async (req, res) => {
 // @access  Private (Payment Manager/Admin)
 const getAllPayments = async (req, res) => {
   try {
-    const paymentsRaw = await Payment.find()
+    const payments = await Payment.find()
       .populate('bookingID')
       .populate('bookingID.userID', 'name email')
       .populate('bookingID.groundID', 'groundName location')
       .populate('verifiedBy', 'name email')
       .sort({ createdAt: -1 });
-
-    const payments = paymentsRaw.map((p) => {
-      const obj = p.toObject();
-      obj.userId = obj.bookingID?.userID || null;
-      obj.groundId = obj.bookingID?.groundID || null;
-      return obj;
-    });
 
     res.json({
       success: true,
@@ -147,13 +127,9 @@ const verifyPayment = async (req, res) => {
     await payment.populate('bookingID.groundID', 'groundName location');
     await payment.populate('verifiedBy', 'name email');
 
-    const paymentObj = payment.toObject();
-    paymentObj.userId = paymentObj.bookingID?.userID || null;
-    paymentObj.groundId = paymentObj.bookingID?.groundID || null;
-
     res.json({
       success: true,
-      data: paymentObj,
+      data: payment,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -190,13 +166,9 @@ const refundPayment = async (req, res) => {
     await payment.populate('bookingID.groundID', 'groundName location');
     await payment.populate('verifiedBy', 'name email');
 
-    const paymentObj = payment.toObject();
-    paymentObj.userId = paymentObj.bookingID?.userID || null;
-    paymentObj.groundId = paymentObj.bookingID?.groundID || null;
-
     res.json({
       success: true,
-      data: paymentObj,
+      data: payment,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

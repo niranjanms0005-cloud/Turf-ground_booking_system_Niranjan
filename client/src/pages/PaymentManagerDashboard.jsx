@@ -26,6 +26,11 @@ function PaymentManagerDashboard() {
       });
       const data = await res.json();
 
+      // Helpful debug log to inspect returned payment objects in devtools
+      // If user/ground fields are missing, inspect this output in the browser console.
+      // Remove or disable in production.
+      console.debug('Payments API response', data);
+
       if (!res.ok) {
         setError(data.message || 'Failed to load payments');
       } else {
@@ -145,14 +150,18 @@ function PaymentManagerDashboard() {
                     {payment.transactionID}
                   </td>
                   <td style={{ padding: '0.75rem' }}>
-                    {payment.bookingID?.userID?.name || 'N/A'}
+                    {payment.bookingID?.userID?.name || (payment.bookingID?.userID ? String(payment.bookingID.userID) : 'N/A')}
                     <br />
-                    <small style={{ color: '#666' }}>{payment.bookingID?.userID?.email || ''}</small>
+                    <small style={{ color: '#666' }}>
+                      {payment.bookingID?.userID?.email || (payment.bookingID?.userID ? String(payment.bookingID.userID) : '')}
+                    </small>
                   </td>
                   <td style={{ padding: '0.75rem' }}>
-                    {payment.bookingID?.groundID?.groundName || 'N/A'}
+                    {payment.bookingID?.groundID?.groundName || (payment.bookingID?.groundID ? String(payment.bookingID.groundID) : 'N/A')}
                     <br />
-                    <small style={{ color: '#666' }}>{payment.bookingID?.groundID?.location || ''}</small>
+                    <small style={{ color: '#666' }}>
+                      {payment.bookingID?.groundID?.location || (payment.bookingID?.groundID ? String(payment.bookingID.groundID) : '')}
+                    </small>
                   </td>
                   <td style={{ padding: '0.75rem' }}>{paymentDate}</td>
                   <td style={{ padding: '0.75rem' }}>{payment.bookingID?.timeSlot || 'N/A'}</td>

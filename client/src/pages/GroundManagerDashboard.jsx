@@ -55,6 +55,8 @@ function GroundManagerDashboard() {
         headers: authHeaders,
       });
       const data = await res.json();
+      // Debug bookings response to inspect presence of user/ground fields
+      console.debug(`Bookings for ground ${groundId}:`, data);
       if (res.ok) {
         setBookings((prev) => ({ ...prev, [groundId]: data.data || [] }));
       }
@@ -321,7 +323,7 @@ function GroundManagerDashboard() {
                         return (
                           <tr key={booking._id} style={{ borderBottom: '1px solid #eee' }}>
                             <td style={{ padding: '0.5rem' }}>
-                              {booking.userID?.name || 'N/A'} ({booking.userID?.email || 'N/A'})
+                              {booking.userID?.name || (booking.userID ? String(booking.userID) : 'N/A')} ({booking.userID?.email || (booking.userID ? String(booking.userID) : 'N/A')})
                             </td>
                             <td style={{ padding: '0.5rem' }}>{bookingDate}</td>
                             <td style={{ padding: '0.5rem' }}>{booking.timeSlot}</td>

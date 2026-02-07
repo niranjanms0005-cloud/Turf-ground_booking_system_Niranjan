@@ -45,21 +45,18 @@ const createPayment = async (req, res) => {
     booking.paymentStatus = 'Paid';
     await booking.save();
 
-    // Populate nested booking -> user and booking -> ground for readable values
-    const bookingPopulate = {
-      path: 'bookingID',
-      populate: [
-        { path: 'userID', select: 'name email' },
-        { path: 'groundID', select: 'groundName location' },
-      ],
-    };
+    await payment.populate('bookingID');
+    await payment.populate('bookingID.userID', 'name email');
+    await payment.populate('bookingID.groundID', 'groundName location');
 
-    await payment.populate(bookingPopulate);
-    await payment.populate('verifiedBy', 'name email');
+    // map convenience fields for frontend: payment.userId and payment.groundId
+    const paymentObj = payment.toObject();
+    paymentObj.userId = paymentObj.bookingID?.userID || null;
+    paymentObj.groundId = paymentObj.bookingID?.groundID || null;
 
     res.status(201).json({
       success: true,
-      data: payment,
+      data: paymentObj,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -75,19 +72,19 @@ const getUserPayments = async (req, res) => {
     const userBookings = await Booking.find({ userID: req.user._id });
     const bookingIds = userBookings.map((b) => b._id);
 
-    // Populate booking -> user and booking -> ground for readable fields
-    const bookingPopulate = {
-      path: 'bookingID',
-      populate: [
-        { path: 'userID', select: 'name email' },
-        { path: 'groundID', select: 'groundName location' },
-      ],
-    };
-
-    const payments = await Payment.find({ bookingID: { $in: bookingIds } })
-      .populate(bookingPopulate)
+    const paymentsRaw = await Payment.find({ bookingID: { $in: bookingIds } })
+      .populate('bookingID')
+      .populate('bookingID.userID', 'name email')
+      .populate('bookingID.groundID', 'groundName location')
       .populate('verifiedBy', 'name email')
       .sort({ createdAt: -1 });
+
+    const payments = paymentsRaw.map((p) => {
+      const obj = p.toObject();
+      obj.userId = obj.bookingID?.userID || null;
+      obj.groundId = obj.bookingID?.groundID || null;
+      return obj;
+    });
 
     res.json({
       success: true,
@@ -104,19 +101,19 @@ const getUserPayments = async (req, res) => {
 // @access  Private (Payment Manager/Admin)
 const getAllPayments = async (req, res) => {
   try {
-    // Nested populate so bookingID.userID and bookingID.groundID are objects with readable fields
-    const bookingPopulate = {
-      path: 'bookingID',
-      populate: [
-        { path: 'userID', select: 'name email' },
-        { path: 'groundID', select: 'groundName location' },
-      ],
-    };
-
-    const payments = await Payment.find()
-      .populate(bookingPopulate)
+    const paymentsRaw = await Payment.find()
+      .populate('bookingID')
+      .populate('bookingID.userID', 'name email')
+      .populate('bookingID.groundID', 'groundName location')
       .populate('verifiedBy', 'name email')
       .sort({ createdAt: -1 });
+
+    const payments = paymentsRaw.map((p) => {
+      const obj = p.toObject();
+      obj.userId = obj.bookingID?.userID || null;
+      obj.groundId = obj.bookingID?.groundID || null;
+      return obj;
+    });
 
     res.json({
       success: true,
@@ -133,16 +130,7 @@ const getAllPayments = async (req, res) => {
 // @access  Private (Payment Manager)
 const verifyPayment = async (req, res) => {
   try {
-    // Find and populate booking -> user and ground
-    const bookingPopulate = {
-      path: 'bookingID',
-      populate: [
-        { path: 'userID', select: 'name email' },
-        { path: 'groundID', select: 'groundName location' },
-      ],
-    };
-
-    const payment = await Payment.findById(req.params.id).populate(bookingPopulate);
+    const payment = await Payment.findById(req.params.id).populate('bookingID');
 
     if (!payment) {
       return res.status(404).json({ message: 'Payment not found' });
@@ -155,11 +143,17 @@ const verifyPayment = async (req, res) => {
     payment.verifiedBy = req.user._id;
     await payment.save();
 
+    await payment.populate('bookingID.userID', 'name email');
+    await payment.populate('bookingID.groundID', 'groundName location');
     await payment.populate('verifiedBy', 'name email');
+
+    const paymentObj = payment.toObject();
+    paymentObj.userId = paymentObj.bookingID?.userID || null;
+    paymentObj.groundId = paymentObj.bookingID?.groundID || null;
 
     res.json({
       success: true,
-      data: payment,
+      data: paymentObj,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -171,15 +165,7 @@ const verifyPayment = async (req, res) => {
 // @access  Private (Payment Manager)
 const refundPayment = async (req, res) => {
   try {
-    const bookingPopulate = {
-      path: 'bookingID',
-      populate: [
-        { path: 'userID', select: 'name email' },
-        { path: 'groundID', select: 'groundName location' },
-      ],
-    };
-
-    const payment = await Payment.findById(req.params.id).populate(bookingPopulate);
+    const payment = await Payment.findById(req.params.id).populate('bookingID');
 
     if (!payment) {
       return res.status(404).json({ message: 'Payment not found' });
@@ -200,11 +186,17 @@ const refundPayment = async (req, res) => {
       await payment.bookingID.save();
     }
 
+    await payment.populate('bookingID.userID', 'name email');
+    await payment.populate('bookingID.groundID', 'groundName location');
     await payment.populate('verifiedBy', 'name email');
+
+    const paymentObj = payment.toObject();
+    paymentObj.userId = paymentObj.bookingID?.userID || null;
+    paymentObj.groundId = paymentObj.bookingID?.groundID || null;
 
     res.json({
       success: true,
-      data: payment,
+      data: paymentObj,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

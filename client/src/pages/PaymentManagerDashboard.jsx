@@ -150,17 +150,17 @@ function PaymentManagerDashboard() {
                     {payment.transactionID}
                   </td>
                   <td style={{ padding: '0.75rem' }}>
-                    {payment.userId?.name ?? payment.bookingID?.userID?.name ?? 'N/A'}
+                    {payment.bookingID?.userID?.name || (payment.bookingID?.userID ? String(payment.bookingID.userID) : 'N/A')}
                     <br />
                     <small style={{ color: '#666' }}>
-                      {payment.userId?.email ?? payment.bookingID?.userID?.email ?? ''}
+                      {payment.bookingID?.userID?.email || (payment.bookingID?.userID ? String(payment.bookingID.userID) : '')}
                     </small>
                   </td>
                   <td style={{ padding: '0.75rem' }}>
-                    {payment.groundId?.groundName ?? payment.bookingID?.groundID?.groundName ?? 'N/A'}
+                    {payment.bookingID?.groundID?.groundName || (payment.bookingID?.groundID ? String(payment.bookingID.groundID) : 'N/A')}
                     <br />
                     <small style={{ color: '#666' }}>
-                      {payment.groundId?.location ?? payment.bookingID?.groundID?.location ?? ''}
+                      {payment.bookingID?.groundID?.location || (payment.bookingID?.groundID ? String(payment.bookingID.groundID) : '')}
                     </small>
                   </td>
                   <td style={{ padding: '0.75rem' }}>{paymentDate}</td>

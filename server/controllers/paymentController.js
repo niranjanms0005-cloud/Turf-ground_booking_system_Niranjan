@@ -116,8 +116,17 @@ const verifyPayment = async (req, res) => {
       return res.status(404).json({ message: 'Payment not found' });
     }
 
+    // Prevent verifying refunded or non-success payments
+    if (payment.paymentStatus === 'Refunded') {
+      return res.status(400).json({ message: 'Cannot verify a refunded payment' });
+    }
     if (payment.paymentStatus !== 'Success') {
       return res.status(400).json({ message: 'Only successful payments can be verified' });
+    }
+
+    // Prevent double verification
+    if (payment.verifiedBy) {
+      return res.status(400).json({ message: 'Payment already verified' });
     }
 
     payment.verifiedBy = req.user._id;
@@ -147,8 +156,9 @@ const refundPayment = async (req, res) => {
       return res.status(404).json({ message: 'Payment not found' });
     }
 
-    if (payment.paymentStatus === 'Refunded') {
-      return res.status(400).json({ message: 'Payment already refunded' });
+    // Only successful payments can be refunded
+    if (payment.paymentStatus !== 'Success') {
+      return res.status(400).json({ message: 'Only successful payments can be refunded' });
     }
 
     // Update payment status

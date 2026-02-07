@@ -26,16 +26,34 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ message: 'Time slot is not available for this ground' });
     }
 
-    // Check if slot is already booked for this date and ground
-    const existingBooking = await Booking.findOne({
+    // Enforce booking limit rule:
+    // A single user may book the same ground for the same time slot a maximum of 3 times (in the past).
+    // - We check existing bookings for this user + groundID + timeSlot across all dates (efficient count query).
+    // - If count >= 3 -> reject with clear message.
+    //
+    // Additionally: a slot already reserved by another user (Pending/Approved) should block booking for that exact slot/time/date.
+    const bookingDateObj = new Date(bookingDate);
+
+    // If another user already has a Pending/Approved booking for same ground/date/time, block.
+    const existingOtherBooking = await Booking.findOne({
       groundID,
-      bookingDate: new Date(bookingDate),
+      bookingDate: bookingDateObj,
       timeSlot,
       status: { $in: ['Pending', 'Approved'] },
+      userID: { $ne: req.user._id },
     });
+    if (existingOtherBooking) {
+      return res.status(400).json({ message: 'This time slot is already booked by another user' });
+    }
 
-    if (existingBooking) {
-      return res.status(400).json({ message: 'This time slot is already booked' });
+    // Count how many times this user has booked the same ground and timeSlot (across all dates).
+    const userSameSlotCount = await Booking.countDocuments({
+      groundID,
+      timeSlot,
+      userID: req.user._id,
+    });
+    if (userSameSlotCount >= 3) {
+      return res.status(400).json({ message: 'Booking limit exceeded: you have already booked this ground and time slot 3 times' });
     }
 
     // Create booking

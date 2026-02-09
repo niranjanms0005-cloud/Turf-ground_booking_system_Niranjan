@@ -36,7 +36,7 @@ const getGroundById = async (req, res) => {
 // @access  Private (Admin, Ground Manager)
 const createGround = async (req, res) => {
   try {
-    const { groundName, location, pricePerSlot, availableSlots, managerID } = req.body;
+    const { groundName, location, pricePerSlot, availableSlots, managerID, photo } = req.body;
 
     if (!groundName || !location || !pricePerSlot) {
       return res.status(400).json({ message: 'Ground name, location and price per slot are required' });
@@ -54,6 +54,7 @@ const createGround = async (req, res) => {
       pricePerSlot,
       availableSlots: availableSlots || [],
       managerID: manager,
+      photo: photo || '',
     });
 
     return res.status(201).json(ground);
@@ -84,6 +85,7 @@ const updateGround = async (req, res) => {
       location: req.body.location ?? ground.location,
       pricePerSlot: req.body.pricePerSlot ?? ground.pricePerSlot,
       availableSlots: req.body.availableSlots ?? ground.availableSlots,
+      photo: req.body.photo ?? ground.photo,
       isActive: req.body.isActive ?? ground.isActive,
     };
 

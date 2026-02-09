@@ -17,6 +17,11 @@ const groundSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    // Optional photo (stored as a URL or data URL)
+    photo: {
+      type: String,
+      default: '',
+    },
     availableSlots: {
       type: [String],
       required: true,

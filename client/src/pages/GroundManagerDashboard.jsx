@@ -16,6 +16,8 @@ function GroundManagerDashboard() {
     availableSlots: '',
   });
   const [editingId, setEditingId] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState('');
+  const [photoFile, setPhotoFile] = useState(null);
 
   const isManager = isLoggedIn && (user?.role === 'groundManager' || user?.role === 'admin');
 
@@ -128,6 +130,8 @@ function GroundManagerDashboard() {
       availableSlots: '',
     });
     setEditingId(null);
+    setPhotoPreview('');
+    setPhotoFile(null);
   };
 
   const handleSubmit = async (e) => {
@@ -141,6 +145,7 @@ function GroundManagerDashboard() {
       availableSlots: form.availableSlots
         ? form.availableSlots.split(',').map((s) => s.trim())
         : [],
+      photo: photoPreview || '',
     };
 
     const url = editingId
@@ -175,6 +180,7 @@ function GroundManagerDashboard() {
       pricePerSlot: ground.pricePerSlot,
       availableSlots: (ground.availableSlots || []).join(', '),
     });
+    setPhotoPreview(ground.photo || '');
   };
 
   const handleDelete = async (id) => {
@@ -251,6 +257,31 @@ function GroundManagerDashboard() {
             onChange={handleChange}
             style={{ width: '100%', padding: '0.5rem' }}
           />
+        </div>
+        <div style={{ marginBottom: '0.5rem' }}>
+          <label>Photo (optional)</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) {
+                setPhotoFile(null);
+                setPhotoPreview('');
+                return;
+              }
+              setPhotoFile(file);
+              const reader = new FileReader();
+              reader.onload = () => setPhotoPreview(reader.result);
+              reader.readAsDataURL(file);
+            }}
+            style={{ width: '100%', padding: '0.25rem' }}
+          />
+          {photoPreview && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <img src={photoPreview} alt="preview" style={{ maxWidth: '200px', borderRadius: '4px' }} />
+            </div>
+          )}
         </div>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <button type="submit" style={{ marginRight: '0.5rem' }}>

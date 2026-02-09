@@ -18,6 +18,8 @@ router.get('/availability', checkAvailability);
 // User routes
 router.post('/', protect, createBooking);
 router.get('/user', protect, getUserBookings);
+// Add or update review for a booking (booking owner)
+router.put('/:id/review', protect, addOrUpdateReview);
 
 // Ground Manager routes
 router.get('/ground/:groundId', protect, authorize('groundManager', 'admin'), getGroundBookings);

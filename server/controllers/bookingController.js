@@ -260,6 +260,49 @@ const checkAvailability = async (req, res) => {
   }
 };
 
+// @desc    Add or update a review for a booking (by the booking owner)
+// @route   PUT /api/bookings/:id/review
+// @access  Private (User - owner of booking)
+const addOrUpdateReview = async (req, res) => {
+  try {
+    const { text = '', rating, visible = true } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // Only the user who made the booking can add/update the review
+    if (booking.userID.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to review this booking' });
+    }
+
+    booking.review = {
+      text,
+      rating,
+      visible,
+      reviewedAt: new Date(),
+    };
+
+    await booking.save();
+
+    // Populate for response
+    await booking.populate('userID', 'name email');
+    await booking.populate('groundID', 'groundName location pricePerSlot');
+
+    res.json({
+      success: true,
+      data: booking,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createBooking,
   getUserBookings,
@@ -268,4 +311,5 @@ module.exports = {
   approveBooking,
   rejectBooking,
   checkAvailability,
+  addOrUpdateReview,
 };

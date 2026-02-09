@@ -330,6 +330,36 @@ function GroundManagerDashboard() {
                   </button>
                 </div>
 
+                {/* Reviews */}
+                <div style={{ marginTop: '1rem' }}>
+                  <h4>Reviews for {ground.groundName}</h4>
+                  {(!bookings[ground._id] || bookings[ground._id].length === 0) ? (
+                    <p>No reviews yet.</p>
+                  ) : (
+                    (() => {
+                      const reviews = (bookings[ground._id] || [])
+                        .map((b) => ({ booking: b, review: b.review }))
+                        .filter((r) => r.review && r.review.visible);
+                      if (reviews.length === 0) return <p>No reviews yet.</p>;
+                      return (
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          {reviews.map(({ booking, review }) => (
+                            <div key={booking._id} style={{ padding: '0.5rem', borderBottom: '1px solid #eee' }}>
+                              <div style={{ color: '#f39c12', fontSize: '1rem' }}>
+                                {'★'.repeat(review.rating || 0)} <span style={{ color: '#666', fontSize: '0.85rem' }}>({review.rating})</span>
+                              </div>
+                              {review.text && <div style={{ marginTop: '0.25rem' }}>{review.text}</div>}
+                              <div style={{ marginTop: '0.25rem', color: '#666', fontSize: '0.85rem' }}>
+                                By: {booking.userID?.name || 'User'} on {review.reviewedAt ? new Date(review.reviewedAt).toLocaleDateString() : ''}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()
+                  )}
+                </div>
+
                 <div style={{ marginTop: '1rem' }}>
                   <h4>Bookings for {ground.groundName}</h4>
                   {loadingBookings[ground._id] ? (

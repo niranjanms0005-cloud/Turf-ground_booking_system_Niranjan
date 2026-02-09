@@ -18,6 +18,9 @@ function GroundManagerDashboard() {
   const [editingId, setEditingId] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
   const [photoFile, setPhotoFile] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   const isManager = isLoggedIn && (user?.role === 'groundManager' || user?.role === 'admin');
 
@@ -203,6 +206,56 @@ function GroundManagerDashboard() {
     }
   };
 
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      return [...prev, id];
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (!selectAll) {
+      const allIds = myGrounds.map((g) => g._id);
+      setSelectedIds(allIds);
+      setSelectAll(true);
+    } else {
+      setSelectedIds([]);
+      setSelectAll(false);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return alert('No grounds selected');
+    if (!window.confirm(`Are you sure you want to deactivate ${selectedIds.length} selected ground(s)?`)) return;
+    try {
+      const promises = selectedIds.map((id) =>
+        fetch(`http://localhost:5000/api/grounds/${id}`, { method: 'DELETE', headers: authHeaders })
+      );
+      const responses = await Promise.all(promises);
+      const results = await Promise.all(responses.map((r) => r.json().catch(() => ({}))));
+      const failed = responses.map((r, i) => (!r.ok ? results[i]?.message || 'Failed' : null)).filter(Boolean);
+      if (failed.length) {
+        alert(`Some deletions failed: ${failed.join('; ')}`);
+      }
+      // refresh and clear selection
+      setSelectedIds([]);
+      setSelectAll(false);
+      loadMyGrounds();
+    } catch (err) {
+      alert('Error deleting selected grounds');
+    }
+  };
+
+  const enterSelectionMode = () => {
+    setIsSelectionMode(true);
+  };
+
+  const exitSelectionMode = () => {
+    setIsSelectionMode(false);
+    setSelectedIds([]);
+    setSelectAll(false);
+  };
+
   if (!isLoggedIn) {
     return <p>Please login as Ground Manager or Admin to manage grounds.</p>;
   }
@@ -294,7 +347,28 @@ function GroundManagerDashboard() {
         )}
       </form>
 
-      <h3>My Grounds</h3>
+      <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        My Grounds
+        <div>
+          {!isSelectionMode ? (
+            <button onClick={enterSelectionMode} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px' }}>
+              Delete
+            </button>
+          ) : (
+            <div>
+              <label style={{ marginRight: '0.75rem' }}>
+                <input type="checkbox" checked={selectAll} onChange={toggleSelectAll} /> Select all
+              </label>
+              <button onClick={handleDeleteSelected} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px', marginRight: '0.5rem' }}>
+                Delete Selected
+              </button>
+              <button onClick={exitSelectionMode} style={{ padding: '0.35rem 0.6rem' }}>
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+      </h3>
       {loading ? (
         <p>Loading your grounds...</p>
       ) : myGrounds.length === 0 ? (
@@ -302,7 +376,12 @@ function GroundManagerDashboard() {
       ) : (
         <div>
           {myGrounds.map((ground) => (
-            <div key={ground._id} style={{ marginBottom: '2rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '4px', display: 'flex', gap: '1rem' }}>
+            <div key={ground._id} style={{ marginBottom: '2rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '4px', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+              {isSelectionMode && (
+                <div style={{ marginRight: '0.5rem' }}>
+                  <input type="checkbox" checked={selectedIds.includes(ground._id)} onChange={() => toggleSelect(ground._id)} />
+                </div>
+              )}
               <div style={{ minWidth: '220px' }}>
                 {ground.photo ? (
                   <img src={ground.photo} alt={ground.groundName} style={{ width: '220px', height: '140px', objectFit: 'cover', borderRadius: '4px' }} />

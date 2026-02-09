@@ -117,30 +117,59 @@ function GroundList() {
           <li>No grounds match your search/filters.</li>
         ) : (
           filteredGrounds.map((ground) => (
-            <li key={ground._id} style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '4px' }}>
-              <div>
-                <strong>{ground.groundName}</strong> - {ground.location} - ₹{ground.pricePerSlot} per slot
+            <li
+              key={ground._id}
+              style={{
+                marginBottom: '1rem',
+                padding: '1rem',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                display: 'flex',
+                gap: '1rem',
+                alignItems: 'flex-start',
+              }}
+            >
+              <div style={{ minWidth: '160px' }}>
+                {ground.photo ? (
+                  <img
+                    src={ground.photo}
+                    alt={ground.groundName}
+                    style={{ width: '160px', height: '110px', objectFit: 'cover', borderRadius: '4px' }}
+                  />
+                ) : (
+                  <div style={{ width: '160px', height: '110px', background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', color: '#999' }}>
+                    No Photo
+                  </div>
+                )}
               </div>
-              {isLoggedIn ? (
-                <Link
-                  to={`/book/${ground._id}`}
-                  style={{
-                    display: 'inline-block',
-                    marginTop: '0.5rem',
-                    padding: '0.5rem 1rem',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    textDecoration: 'none',
-                    borderRadius: '4px',
-                  }}
-                >
-                  Book Now
-                </Link>
-              ) : (
-                <p style={{ marginTop: '0.5rem', color: '#666' }}>
-                  <Link to="/login">Login</Link> to book this ground
-                </p>
-              )}
+
+              <div style={{ flex: 1 }}>
+                <div>
+                  <strong>{ground.groundName}</strong> - {ground.location} - ₹{ground.pricePerSlot} per slot
+                </div>
+
+                <div style={{ marginTop: '0.5rem' }}>
+                  {isLoggedIn ? (
+                    <Link
+                      to={`/book/${ground._id}`}
+                      style={{
+                        display: 'inline-block',
+                        padding: '0.5rem 1rem',
+                        backgroundColor: '#007bff',
+                        color: 'white',
+                        textDecoration: 'none',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      Book Now
+                    </Link>
+                  ) : (
+                    <p style={{ marginTop: '0.5rem', color: '#666' }}>
+                      <Link to="/login">Login</Link> to book this ground
+                    </p>
+                  )}
+                </div>
+              </div>
             </li>
           ))
         )}

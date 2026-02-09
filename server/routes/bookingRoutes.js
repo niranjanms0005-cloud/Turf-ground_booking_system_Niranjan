@@ -7,6 +7,7 @@ const {
   approveBooking,
   rejectBooking,
   checkAvailability,
+  addOrUpdateReview,
 } = require('../controllers/bookingController');
 const { protect, authorize } = require('../middleware/auth');
 

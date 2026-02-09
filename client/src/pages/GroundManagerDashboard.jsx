@@ -302,122 +302,85 @@ function GroundManagerDashboard() {
       ) : (
         <div>
           {myGrounds.map((ground) => (
-            <div
-              key={ground._id}
-              style={{
-                marginBottom: '2rem',
-                padding: '1rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-              }}
-            >
-              <div style={{ marginBottom: '0.5rem' }}>
-                <strong>{ground.groundName}</strong> - {ground.location} - ₹{ground.pricePerSlot}
-                <br />
-                Slots: {(ground.availableSlots || []).join(', ')}
-                <br />
-                <button onClick={() => handleEdit(ground)} style={{ marginRight: '0.5rem', marginTop: '0.5rem' }}>
-                  Edit
-                </button>
-                <button onClick={() => handleDelete(ground._id)} style={{ marginTop: '0.5rem' }}>
-                  Delete
-                </button>
-                <button
-                  onClick={() => loadBookingsForGround(ground._id)}
-                  style={{ marginLeft: '0.5rem', marginTop: '0.5rem' }}
-                >
-                  Refresh Bookings
-                </button>
+            <div key={ground._id} style={{ marginBottom: '2rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '4px', display: 'flex', gap: '1rem' }}>
+              <div style={{ minWidth: '220px' }}>
+                {ground.photo ? (
+                  <img src={ground.photo} alt={ground.groundName} style={{ width: '220px', height: '140px', objectFit: 'cover', borderRadius: '4px' }} />
+                ) : (
+                  <div style={{ width: '220px', height: '140px', background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', color: '#999' }}>
+                    No Photo
+                  </div>
+                )}
               </div>
 
-              <div style={{ marginTop: '1rem' }}>
-                <h4>Bookings for {ground.groundName}</h4>
-                {loadingBookings[ground._id] ? (
-                  <p>Loading bookings...</p>
-                ) : !bookings[ground._id] || bookings[ground._id].length === 0 ? (
-                  <p>No bookings yet.</p>
-                ) : (
-                  <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '0.5rem' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid #ddd' }}>
-                        <th style={{ padding: '0.5rem', textAlign: 'left' }}>User</th>
-                        <th style={{ padding: '0.5rem', textAlign: 'left' }}>Date</th>
-                        <th style={{ padding: '0.5rem', textAlign: 'left' }}>Time Slot</th>
-                        <th style={{ padding: '0.5rem', textAlign: 'left' }}>Status</th>
-                        <th style={{ padding: '0.5rem', textAlign: 'left' }}>Payment</th>
-                        <th style={{ padding: '0.5rem', textAlign: 'left' }}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bookings[ground._id].map((booking) => {
-                        const bookingDate = new Date(booking.bookingDate).toLocaleDateString();
-                        return (
-                          <tr key={booking._id} style={{ borderBottom: '1px solid #eee' }}>
-                            <td style={{ padding: '0.5rem' }}>
-                              {booking.userID?.name || (booking.userID ? String(booking.userID) : 'N/A')} ({booking.userID?.email || (booking.userID ? String(booking.userID) : 'N/A')})
-                            </td>
-                            <td style={{ padding: '0.5rem' }}>{bookingDate}</td>
-                            <td style={{ padding: '0.5rem' }}>{booking.timeSlot}</td>
-                            <td style={{ padding: '0.5rem' }}>
-                              <strong
-                                style={{
-                                  color:
-                                    booking.status === 'Approved'
-                                      ? 'green'
-                                      : booking.status === 'Rejected'
-                                      ? 'red'
-                                      : 'orange',
-                                }}
-                              >
-                                {booking.status}
-                              </strong>
-                            </td>
-                            <td style={{ padding: '0.5rem' }}>
-                              {booking.paymentStatus === 'Paid' ? (
-                                <span style={{ color: 'green' }}>Paid</span>
-                              ) : (
-                                <span style={{ color: 'orange' }}>Unpaid</span>
-                              )}
-                            </td>
-                            <td style={{ padding: '0.5rem' }}>
-                              {booking.status === 'Pending' && (
-                                <>
-                                  <button
-                                    onClick={() => handleApprove(booking._id, ground._id)}
-                                    style={{
-                                      marginRight: '0.5rem',
-                                      backgroundColor: 'green',
-                                      color: 'white',
-                                      border: 'none',
-                                      padding: '0.25rem 0.5rem',
-                                      borderRadius: '4px',
-                                      cursor: 'pointer',
-                                    }}
-                                  >
-                                    Approve
-                                  </button>
-                                  <button
-                                    onClick={() => handleReject(booking._id, ground._id)}
-                                    style={{
-                                      backgroundColor: 'red',
-                                      color: 'white',
-                                      border: 'none',
-                                      padding: '0.25rem 0.5rem',
-                                      borderRadius: '4px',
-                                      cursor: 'pointer',
-                                    }}
-                                  >
-                                    Reject
-                                  </button>
-                                </>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                )}
+              <div style={{ flex: 1 }}>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <strong>{ground.groundName}</strong> - {ground.location} - ₹{ground.pricePerSlot}
+                  <br />
+                  Slots: {(ground.availableSlots || []).join(', ')}
+                  <br />
+                  <button onClick={() => handleEdit(ground)} style={{ marginRight: '0.5rem', marginTop: '0.5rem' }}>
+                    Edit
+                  </button>
+                  <button onClick={() => handleDelete(ground._id)} style={{ marginTop: '0.5rem' }}>
+                    Delete
+                  </button>
+                  <button onClick={() => loadBookingsForGround(ground._id)} style={{ marginLeft: '0.5rem', marginTop: '0.5rem' }}>
+                    Refresh Bookings
+                  </button>
+                </div>
+
+                <div style={{ marginTop: '1rem' }}>
+                  <h4>Bookings for {ground.groundName}</h4>
+                  {loadingBookings[ground._id] ? (
+                    <p>Loading bookings...</p>
+                  ) : !bookings[ground._id] || bookings[ground._id].length === 0 ? (
+                    <p>No bookings yet.</p>
+                  ) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '0.5rem' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid #ddd' }}>
+                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>User</th>
+                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Date</th>
+                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Time Slot</th>
+                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Status</th>
+                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Payment</th>
+                          <th style={{ padding: '0.5rem', textAlign: 'left' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bookings[ground._id].map((booking) => {
+                          const bookingDate = new Date(booking.bookingDate).toLocaleDateString();
+                          return (
+                            <tr key={booking._id} style={{ borderBottom: '1px solid #eee' }}>
+                              <td style={{ padding: '0.5rem' }}>
+                                {booking.userID?.name || (booking.userID ? String(booking.userID) : 'N/A')} ({booking.userID?.email || (booking.userID ? String(booking.userID) : 'N/A')})
+                              </td>
+                              <td style={{ padding: '0.5rem' }}>{bookingDate}</td>
+                              <td style={{ padding: '0.5rem' }}>{booking.timeSlot}</td>
+                              <td style={{ padding: '0.5rem' }}>
+                                <strong style={{ color: booking.status === 'Approved' ? 'green' : booking.status === 'Rejected' ? 'red' : 'orange' }}>
+                                  {booking.status}
+                                </strong>
+                              </td>
+                              <td style={{ padding: '0.5rem' }}>{booking.paymentStatus === 'Paid' ? <span style={{ color: 'green' }}>Paid</span> : <span style={{ color: 'orange' }}>Unpaid</span>}</td>
+                              <td style={{ padding: '0.5rem' }}>
+                                {booking.status === 'Pending' && (
+                                  <>
+                                    <button onClick={() => handleApprove(booking._id, ground._id)} style={{ marginRight: '0.5rem' }}>
+                                      Approve
+                                    </button>
+                                    <button onClick={() => handleReject(booking._id, ground._id)}>Reject</button>
+                                  </>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
               </div>
             </div>
           ))}

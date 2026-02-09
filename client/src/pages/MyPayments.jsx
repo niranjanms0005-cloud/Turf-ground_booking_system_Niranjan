@@ -68,7 +68,9 @@ function MyPayments() {
               return (
                 <tr key={p._id} style={{ borderBottom: '1px solid #eee' }}>
                   <td style={{ padding: '0.5rem', fontFamily: 'monospace' }}>{p.transactionID}</td>
-                  <td style={{ padding: '0.5rem' }}>{p.bookingID?.groundID?.groundName || 'N/A'}</td>
+                  <td style={{ padding: '0.5rem' }}>
+                    {p.bookingID?.groundID?.groundName || (p.bookingID?.groundID ? String(p.bookingID.groundID) : 'N/A')}
+                  </td>
                   <td style={{ padding: '0.5rem' }}>{bookingDate}</td>
                   <td style={{ padding: '0.5rem' }}>{p.bookingID?.timeSlot || 'N/A'}</td>
                   <td style={{ padding: '0.5rem' }}>₹{p.amount}</td>

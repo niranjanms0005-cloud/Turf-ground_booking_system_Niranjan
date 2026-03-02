@@ -11,6 +11,7 @@ import PaymentManagerDashboard from './pages/PaymentManagerDashboard.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import MyPayments from './pages/MyPayments.jsx';
 import Home from './pages/Home.jsx';
+import Profile from './pages/Profile.jsx';
 
 function App() {
   const { user, isLoggedIn, logout } = useAuth();
@@ -40,6 +41,7 @@ function App() {
 
         {isLoggedIn ? (
           <>
+            <Link to="/profile" style={{ marginRight: '1rem' }}>Profile</Link>
             <span style={{ marginRight: '1rem' }}>
               Logged in as: {user?.name} ({user?.role})
             </span>
@@ -98,6 +100,12 @@ function App() {
         />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route
+          path="/profile"
+          element={
+            isLoggedIn ? <Profile /> : <Navigate to="/login" replace />
+          }
+        />
         {/* Role-specific dashboards: only accessible after login with correct role */}
         <Route
           path="/ground-manager"

@@ -15,12 +15,18 @@ Payments are usually handled offline, causing confusion and lack of proper recor
 There is no centralized system to track bookings and manage schedules efficiently.
 ----------------------------------------------------------------------------------
 3. PROPOSED SOLUTION
-
 A web application where users can view available turfs and real-time slot availability.
 Users can book slots and make online payments directly from the platform.
-Ground Managers manage turf details and slot schedules.
+Ground Managers manage turf details, upload ground photos, and control slot schedules.
 Payment Managers verify transactions and handle refunds.
 Admins monitor the entire system and manage users and system operations.
+
+Key implemented capabilities:
+- Public grounds listing with photo previews, client-side search and filters (name, location, min/max price).
+- Booking + payment flow with payment verification and refund support.
+- User reviews and 1–5 star ratings stored on bookings and visible on grounds listing and manager pages.
+- Ground Manager area split into dedicated pages for Create (with photo upload) and My Grounds (listing, bookings, reviews).
+- Bulk (multi-select) ground deactivate/delete in manager UI.
 ----------------------------------------------------------------------
 4. USER ROLES & PERMISSIONS
 
@@ -37,10 +43,11 @@ Can View booking history and booking status.
 B. Ground Manager:
 
 Can Login securely.
-Can Add/Edit/Delete Ground details (Name, Location, Price, Slots).
+Can Add/Edit/Delete Ground details (Name, Location, Price, Slots) and upload a photo for each ground.
 Can Manage available time slots.
 Can View booking requests.
 Can Approve or Reject bookings.
+Can view user reviews submitted for their grounds and moderate visibility.
 
 C. Payment Manager:
 
@@ -75,6 +82,7 @@ PricePerSlot (Number)
 AvailableSlots (Array)
 ManagerID (Reference to User)
 IsActive (Boolean)
+Photo (String) — optional URL or data-URL for the ground image
 
 C. Booking Schema:
 
@@ -85,6 +93,11 @@ TimeSlot (String)
 Status (String: 'Pending', 'Approved', 'Rejected')
 PaymentStatus (String: 'Paid', 'Unpaid')
 CreatedAt (Timestamp)
+Review (Object, optional)
+  - text (String)
+  - rating (Number, 1-5)
+  - visible (Boolean) — whether the review is publicly visible
+  - reviewedAt (Date)
 
 D. Payment Schema:
 
@@ -95,6 +108,8 @@ TransactionID (String)
 PaymentStatus (String: 'Success', 'Failed', 'Refunded')
 VerifiedBy (Payment Manager Reference)
 CreatedAt (Timestamp)
+Notes:
+- Booking and Payment responses populate nested references (booking -> ground, booking -> user) so frontend receives groundName and ground.photo without extra client requests.
 --------------------------------------------------------
 6. FEATURE WORKFLOW (The "User Journey")
 
@@ -106,6 +121,8 @@ Payment: User completes online payment.
 Verification: Payment Manager verifies the transaction.
 Approval: Ground Manager approves or rejects the booking.
 Confirmation: User receives booking confirmation and updated status.
+Review: After booking/payment, users may submit a review and star rating for that booking; reviews are saved on the Booking document and—if visible—displayed on the public ground listing and to the ground manager.
+Photos: Ground Managers may upload a photo when creating/updating a ground; the photo is shown on public listings and manager pages.
 -------------------------------------------------------------------
 7. API ENDPOINTS (The URL Rules)
 
@@ -113,16 +130,22 @@ Authentication
 POST /api/auth/register → Create new user
 POST /api/auth/login → Login user
 Ground Management
-GET /api/grounds → Get list of grounds
-POST /api/grounds → Create new ground (Ground Manager/Admin)
-PUT /api/grounds/:id → Update ground details
-DELETE /api/grounds/:id → Delete ground
+GET /api/grounds → Get list of grounds (public; returns groundName, location, pricePerSlot, photo, isActive)
+POST /api/grounds → Create new ground (Ground Manager/Admin) — accepts `photo` (string URL or data-URL)
+PUT /api/grounds/:id → Update ground details (includes `photo`)
+DELETE /api/grounds/:id → Deactivate (soft-delete) ground
+GET /api/grounds/manager/my-grounds → Get grounds for logged-in manager (includes photo and related info)
 Booking
 POST /api/bookings → Create new booking
-GET /api/bookings/user → View user bookings
-PUT /api/bookings/:id → Approve / Reject booking
+GET /api/bookings/user → View user bookings (populated with booking.groundID fields including groundName and photo)
+PUT /api/bookings/:id/approve → Approve booking (ground manager/admin)
+PUT /api/bookings/:id/reject → Reject booking (ground manager/admin)
+PUT /api/bookings/:id/review → Add or update review for a booking (booking owner). Body: { rating, text, visible }
 Payment
 POST /api/payments → Create payment record
-GET /api/payments → View payments
-PUT /api/payments/verify/:id → Verify payment
+GET /api/payments → View all payments (payment manager/admin) — populated with booking -> ground and booking -> user
+GET /api/payments/user → View payments for logged-in user (populated)
+PUT /api/payments/:id/verify → Verify payment (payment manager)
+PUT /api/payments/:id/refund → Refund payment (payment manager)
 ------------------------------------------------
+ 

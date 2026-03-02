@@ -90,6 +90,20 @@ const TrashIcon = () => (
   </svg>
 );
 
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+
+const XCircleIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="15" y1="9" x2="9" y2="15"/>
+    <line x1="9" y1="9" x2="15" y2="15"/>
+  </svg>
+);
+
 const RevenueIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="12" y1="1" x2="12" y2="23"/>
@@ -253,6 +267,43 @@ function AdminDashboard() {
         loadStats();
       } else {
         setError(data.message || 'Failed to delete user');
+      }
+    } catch (err) {
+      setError('Something went wrong');
+    }
+  };
+
+  const handleApproveUser = async (userId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/approve`, {
+        method: 'PUT',
+        headers: authHeaders,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        loadUsers();
+        loadStats();
+      } else {
+        setError(data.message || 'Failed to approve user');
+      }
+    } catch (err) {
+      setError('Something went wrong');
+    }
+  };
+
+  const handleRejectUser = async (userId) => {
+    if (!window.confirm('Revoke this user\'s access? They will not be able to log in until approved again.')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/reject`, {
+        method: 'PUT',
+        headers: authHeaders,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        loadUsers();
+        loadStats();
+      } else {
+        setError(data.message || 'Failed to revoke approval');
       }
     } catch (err) {
       setError('Something went wrong');
@@ -1081,6 +1132,7 @@ function AdminDashboard() {
                           <th style={styles.tableHeaderCell}>User</th>
                           <th style={styles.tableHeaderCell}>Email</th>
                           <th style={styles.tableHeaderCell}>Role</th>
+                          <th style={styles.tableHeaderCell}>Status</th>
                           <th style={styles.tableHeaderCell}>Joined</th>
                           <th style={styles.tableHeaderCell}>Actions</th>
                         </tr>
@@ -1150,22 +1202,92 @@ function AdminDashboard() {
                                 </select>
                               </td>
                               <td style={styles.tableCell}>
+                                {u.role === 'admin' ? (
+                                  <span style={{ color: '#9CA3AF', fontSize: '13px' }}>—</span>
+                                ) : u.approved === false ? (
+                                  <span style={{
+                                    padding: '4px 10px',
+                                    borderRadius: '20px',
+                                    fontSize: '12px',
+                                    fontWeight: '600',
+                                    backgroundColor: '#FEF3C7',
+                                    color: '#D97706',
+                                  }}>Pending</span>
+                                ) : (
+                                  <span style={{
+                                    padding: '4px 10px',
+                                    borderRadius: '20px',
+                                    fontSize: '12px',
+                                    fontWeight: '600',
+                                    backgroundColor: '#D1FAE5',
+                                    color: '#059669',
+                                  }}>Approved</span>
+                                )}
+                              </td>
+                              <td style={styles.tableCell}>
                                 <span style={{ color: '#6B7280', fontSize: '13px' }}>{createdDate}</span>
                               </td>
                               <td style={styles.tableCell}>
                                 {!isCurrentUser ? (
-                                  <button
-                                    onClick={() => handleDeleteUser(u._id)}
-                                    style={{
-                                      ...styles.deleteButton,
-                                      ...(hoveredButton === `delete-${u._id}` ? styles.deleteButtonHover : {}),
-                                    }}
-                                    onMouseEnter={() => setHoveredButton(`delete-${u._id}`)}
-                                    onMouseLeave={() => setHoveredButton(null)}
-                                  >
-                                    <TrashIcon />
-                                    Delete
-                                  </button>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                    {u.role !== 'admin' && u.approved === false && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleApproveUser(u._id)}
+                                        style={{
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '6px',
+                                          padding: '6px 12px',
+                                          fontSize: '13px',
+                                          fontWeight: '600',
+                                          color: '#059669',
+                                          backgroundColor: '#D1FAE5',
+                                          border: 'none',
+                                          borderRadius: '8px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        <CheckIcon />
+                                        Approve
+                                      </button>
+                                    )}
+                                    {u.role !== 'admin' && u.approved === true && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRejectUser(u._id)}
+                                        style={{
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '6px',
+                                          padding: '6px 12px',
+                                          fontSize: '13px',
+                                          fontWeight: '600',
+                                          color: '#D97706',
+                                          backgroundColor: '#FEF3C7',
+                                          border: 'none',
+                                          borderRadius: '8px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        <XCircleIcon />
+                                        Revoke
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteUser(u._id)}
+                                      style={{
+                                        ...styles.deleteButton,
+                                        ...(hoveredButton === `delete-${u._id}` ? styles.deleteButtonHover : {}),
+                                      }}
+                                      onMouseEnter={() => setHoveredButton(`delete-${u._id}`)}
+                                      onMouseLeave={() => setHoveredButton(null)}
+                                    >
+                                      <TrashIcon />
+                                      Delete
+                                    </button>
+                                  </div>
                                 ) : (
                                   <span style={{ color: '#9CA3AF', fontSize: '13px' }}>—</span>
                                 )}

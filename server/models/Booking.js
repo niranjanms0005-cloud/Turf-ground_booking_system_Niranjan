@@ -20,6 +20,17 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    // When booking by time range: array of slot strings (e.g. ['09:00-10:00','10:00-11:00'])
+    timeSlots: {
+      type: [String],
+      default: undefined,
+    },
+    // Total amount for this booking (slotCount * pricePerSlot when timeSlots used)
+    amount: {
+      type: Number,
+      min: 0,
+      default: undefined,
+    },
     status: {
       type: String,
       enum: ['Pending', 'Approved', 'Rejected', 'Cancelled'],

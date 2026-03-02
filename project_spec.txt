@@ -15,137 +15,199 @@ Payments are usually handled offline, causing confusion and lack of proper recor
 There is no centralized system to track bookings and manage schedules efficiently.
 ----------------------------------------------------------------------------------
 3. PROPOSED SOLUTION
+
 A web application where users can view available turfs and real-time slot availability.
-Users can book slots and make online payments directly from the platform.
-Ground Managers manage turf details, upload ground photos, and control slot schedules.
+Users can book slots (single slot or custom time range) and make online payments directly from the platform.
+Ground Managers manage turf details, upload ground photos, control slot schedules, and can deactivate grounds for maintenance.
 Payment Managers verify transactions and handle refunds.
-Admins monitor the entire system and manage users and system operations.
+Admins monitor the entire system, manage users, approve new accounts, and manage system operations.
 
 Key implemented capabilities:
-- Public grounds listing with photo previews, client-side search and filters (name, location, min/max price).
-- Booking + payment flow with payment verification and refund support.
-- User reviews and 1–5 star ratings stored on bookings and visible on grounds listing and manager pages.
-- Ground Manager area split into dedicated pages for Create (with photo upload) and My Grounds (listing, bookings, reviews).
-- Bulk (multi-select) ground deactivate/delete in manager UI.
+- Public grounds listing with photo previews; client-side search and filters (name, location, min/max price). Inactive (maintenance) grounds are listed but shown as unavailable and cannot be booked.
+- Two booking options: select a single available slot, or choose a custom time range (From–To); overlapping slots are auto-selected and total amount is calculated. Multi-slot bookings store timeSlots and amount on the booking; payment and UI reflect the total.
+- User reviews and 1–5 star ratings stored on bookings; visible on grounds listing and Ground Manager’s My Grounds (collapsible review section).
+- Ground Manager area: Create Ground (with photo upload), My Grounds (listing with Active/Under maintenance status, approve/reject bookings, reviews, bulk multi-select delete/deactivate).
+- Ground Manager can toggle a ground “Set under maintenance” / “Activate” without removing it from the list; users see “Under maintenance” and cannot book.
+- Account approval: non-admin roles (user, groundManager, paymentManager) require admin approval before first login; admin can approve/reject in User Management. Admins are auto-approved on register.
+- Profile page for all roles with edit (name, email, phone, optional password change) and password visibility toggle.
+- Single themed navbar (purple gradient) with role-based links; post-login redirect to role-specific page (user→Grounds, groundManager→Ground Manager, paymentManager→Payment Manager, admin→Admin).
+- Payment verification, refunds, and revenue distribution (Ground Manager 90%, Payment Manager 5%, Admin 5%); dashboard stats and manager earnings.
 ----------------------------------------------------------------------
 4. USER ROLES & PERMISSIONS
 
 A. User (Player / Customer):
 
-Can Register and Login.
-Can View available Turfs and Grounds.
-Can Check real-time slot availability.
-Can Select date and time slots.
-Can Book a turf.
-Can Make online payments.
-Can View booking history and booking status.
+Can Register (account pending admin approval until approved; then can log in).
+Can Login; after login is redirected to Grounds page.
+Can View available turfs and grounds (including inactive ones, marked “Under maintenance” and unbookable).
+Can Check real-time slot availability (GET /api/bookings/availability).
+Can Book a turf: either select one available slot or choose a custom time range (From–To); overlapping slots and total amount are computed.
+Can Make online payments (amount reflects single-slot or multi-slot total).
+Can View booking history (My Bookings) and booking status; add or edit review and star rating per booking.
+Can View payment history (My Payments).
+Can View and edit own profile (name, email, phone, password with visibility toggle).
 
 B. Ground Manager:
 
-Can Login securely.
+Can Login (after admin approval); redirected to Ground Manager dashboard.
 Can Add/Edit/Delete Ground details (Name, Location, Price, Slots) and upload a photo for each ground.
+Can Set ground “Under maintenance” (deactivate) or “Activate”; ground remains listed but cannot be booked when inactive.
 Can Manage available time slots.
-Can View booking requests.
-Can Approve or Reject bookings.
-Can view user reviews submitted for their grounds and moderate visibility.
+Can View booking requests and Approve or Reject bookings.
+Can View user reviews for their grounds (collapsible section); reviews are fetched from bookings.
+Can Multi-select grounds and bulk delete (deactivate).
+Can View and edit own profile.
 
 C. Payment Manager:
 
-Can Login securely.
-Can Verify payment transactions.
-Can Manage failed payments and refunds.
-Can Maintain payment records.
-Can Resolve payment-related issues.
+Can Login (after admin approval); redirected to Payment Manager dashboard.
+Can Verify payment transactions and manage refunds.
+Can View all payments and dashboard stats (revenue, distribution, refunds).
+Can View and edit own profile.
 
 D. Admin:
 
-Can Login (Secure Admin Dashboard).
-Can Manage Users and role assignments.
-Can View all bookings and payments.
-Can Handle disputes and system monitoring.
-Can Maintain overall system control.
+Can Login; redirected to Admin dashboard.
+Can Manage users: view all, change roles, approve or reject pending accounts, revoke approval, delete users.
+Can View all bookings and payments, system stats, and financial analytics.
+Can View and edit own profile.
 -----------------------------------------
 5. DATABASE STRUCTURE (Schemas)
 
 A. User Schema:
 
 Name (String)
-Email (String, Unique)
-Password (Hashed)
+Email (String, Unique, lowercase)
+Phone (String, 10 digits)
+Password (Hashed, min 8 chars; validation: uppercase, lowercase, number)
 Role (String: 'user', 'admin', 'groundManager', 'paymentManager')
+Approved (Boolean) — non-admin users require admin approval before first login; admin is auto-approved
+Wallet (Number, default 0, min 0)
+Timestamps
 
 B. Ground Schema:
 
 GroundName (String)
 Location (String)
 PricePerSlot (Number)
-AvailableSlots (Array)
+AvailableSlots (Array of strings, e.g. '09:00-10:00')
 ManagerID (Reference to User)
-IsActive (Boolean)
+IsActive (Boolean) — when false, ground is listed but not bookable (maintenance)
 Photo (String) — optional URL or data-URL for the ground image
+Timestamps
 
 C. Booking Schema:
 
 UserID (Reference to User)
 GroundID (Reference to Ground)
 BookingDate (Date)
-TimeSlot (String)
-Status (String: 'Pending', 'Approved', 'Rejected')
+TimeSlot (String) — display string (e.g. single '09:00-10:00' or range '09:00-12:00')
+TimeSlots (Array of strings) — when booking by range, the list of slot strings included
+Amount (Number, optional) — total for the booking (single slot or multiple slots × pricePerSlot)
+Status (String: 'Pending', 'Approved', 'Rejected', 'Cancelled')
 PaymentStatus (String: 'Paid', 'Unpaid')
-CreatedAt (Timestamp)
-Review (Object, optional)
-  - text (String)
-  - rating (Number, 1-5)
-  - visible (Boolean) — whether the review is publicly visible
-  - reviewedAt (Date)
+Review (Object, optional): text, rating (1–5), visible (Boolean), reviewedAt (Date)
+Timestamps
 
 D. Payment Schema:
 
 BookingID (Reference to Booking)
-Amount (Number)
+Amount (Number) — total paid (from booking.amount or derived from booking timeSlots/pricePerSlot)
 PaymentMethod (String)
-TransactionID (String)
+TransactionID (String, unique)
 PaymentStatus (String: 'Success', 'Failed', 'Refunded')
-VerifiedBy (Payment Manager Reference)
-CreatedAt (Timestamp)
+VerifiedBy (Reference to User, Payment Manager)
+GroundManagerShare, PaymentManagerShare, AdminShare (Number) — revenue distribution
+RefundAmount, RefundedBy (optional, for refunds)
+Timestamps
+
 Notes:
-- Booking and Payment responses populate nested references (booking -> ground, booking -> user) so frontend receives groundName and ground.photo without extra client requests.
+- API responses populate nested references (e.g. booking → groundID, userID; payment → bookingID → groundID, userID) so the frontend receives groundName, user name, etc.
+- Inactive grounds (isActive: false) are returned by GET /api/grounds and GET /api/grounds/:id; booking creation is rejected for inactive grounds.
 --------------------------------------------------------
 6. FEATURE WORKFLOW (The "User Journey")
 
-Login: User logs in and lands on the Turf Listing Page.
-Browse: User views available turfs and free time slots (fetched from DB).
-Booking: User selects a ground, date, and time slot and submits booking.
-Database: A new Booking document is created in MongoDB with status Pending.
-Payment: User completes online payment.
-Verification: Payment Manager verifies the transaction.
-Approval: Ground Manager approves or rejects the booking.
-Confirmation: User receives booking confirmation and updated status.
-Review: After booking/payment, users may submit a review and star rating for that booking; reviews are saved on the Booking document and—if visible—displayed on the public ground listing and to the ground manager.
-Photos: Ground Managers may upload a photo when creating/updating a ground; the photo is shown on public listings and manager pages.
+Registration & Login:
+- User registers with name, email, phone, password, role (or default user). Non-admin roles are created with approved: false and do not receive a token; they see a success message and are redirected to Login. Admin is created with approved: true and can log in immediately.
+- On login, non-approved non-admin users receive 403 “Your account is pending approval.” Admin approves accounts from Admin → User Management (Approve / Revoke).
+- After successful login, user is redirected by role: user → /grounds, groundManager → /ground-manager, paymentManager → /payment-manager, admin → /admin.
+
+Browse & Book:
+- User browses grounds (all listed; inactive show “Under maintenance” and Unavailable). Filters: search text, location, min/max price.
+- User selects a ground and date. Booking option: (1) Select one available slot from dropdown, or (2) Custom time range (From–To); UI shows overlapping slots and total amount; backend creates one booking with timeSlots and amount.
+- GET /api/bookings/availability?groundId=&bookingDate= returns available slots (considering multi-slot bookings). POST /api/bookings accepts either timeSlot (single) or timeFrom + timeTo (range).
+
+Payment & Verification:
+- User pays from My Bookings (payment amount = booking total). Payment Manager verifies; revenue is distributed (90% GM, 5% PM, 5% Admin). Refunds supported with partial retention.
+
+Ground Manager:
+- Manager can create/edit grounds (with photo), view My Grounds, approve/reject bookings, view reviews (collapsible), toggle “Set under maintenance” / “Activate,” and bulk-delete (deactivate) selected grounds.
+
+Profile:
+- All roles have a Profile page; editable fields: name, email, phone, optional new password (with current password and password visibility toggle).
 -------------------------------------------------------------------
-7. API ENDPOINTS (The URL Rules)
+7. API ENDPOINTS
 
 Authentication
-POST /api/auth/register → Create new user
-POST /api/auth/login → Login user
-Ground Management
-GET /api/grounds → Get list of grounds (public; returns groundName, location, pricePerSlot, photo, isActive)
-POST /api/grounds → Create new ground (Ground Manager/Admin) — accepts `photo` (string URL or data-URL)
-PUT /api/grounds/:id → Update ground details (includes `photo`)
-DELETE /api/grounds/:id → Deactivate (soft-delete) ground
-GET /api/grounds/manager/my-grounds → Get grounds for logged-in manager (includes photo and related info)
-Booking
-POST /api/bookings → Create new booking
-GET /api/bookings/user → View user bookings (populated with booking.groundID fields including groundName and photo)
-PUT /api/bookings/:id/approve → Approve booking (ground manager/admin)
-PUT /api/bookings/:id/reject → Reject booking (ground manager/admin)
-PUT /api/bookings/:id/review → Add or update review for a booking (booking owner). Body: { rating, text, visible }
-Payment
-POST /api/payments → Create payment record
-GET /api/payments → View all payments (payment manager/admin) — populated with booking -> ground and booking -> user
-GET /api/payments/user → View payments for logged-in user (populated)
-PUT /api/payments/:id/verify → Verify payment (payment manager)
-PUT /api/payments/:id/refund → Refund payment (payment manager)
+  POST /api/auth/register     — Create new user (non-admin: no token, pending approval; admin: token returned)
+  POST /api/auth/login       — Login (403 if non-admin and not approved)
+  GET  /api/auth/me          — Current user (protected)
+  PUT  /api/auth/profile     — Update profile: name, email, phone, optional password (protected)
+
+Grounds
+  GET  /api/grounds                    — List all grounds (active and inactive); public
+  GET  /api/grounds/:id                — Get ground by ID (including inactive); public
+  POST /api/grounds                    — Create ground (Ground Manager/Admin); body may include photo
+  PUT  /api/grounds/:id                — Update ground (including isActive, photo)
+  DELETE /api/grounds/:id              — Soft-deactivate ground (sets isActive: false)
+  GET  /api/grounds/manager/my-grounds — Manager’s grounds (protected, Ground Manager)
+
+Bookings
+  GET  /api/bookings/availability      — Query: groundId, bookingDate → availableSlots (public)
+  POST /api/bookings                   — Create booking (protected). Body: groundID, bookingDate, and either timeSlot (single) or timeFrom + timeTo (range; slots overlapping range are booked, amount = slots × pricePerSlot)
+  GET  /api/bookings/user              — User’s bookings (protected, populated)
+  PUT  /api/bookings/:id/review        — Add/update review (rating, text, visible) (protected, owner)
+  PUT  /api/bookings/:id/approve       — Approve booking (Ground Manager/Admin)
+  PUT  /api/bookings/:id/reject        — Reject booking (Ground Manager/Admin)
+  GET  /api/bookings/ground/:groundId  — Bookings for a ground (Ground Manager/Admin)
+  GET  /api/bookings                   — All bookings (Admin)
+
+Payments
+  POST /api/payments           — Create payment for a booking (protected; amount from booking.amount or timeSlots)
+  GET  /api/payments/user      — User’s payments (protected, populated)
+  GET  /api/payments           — All payments (Payment Manager/Admin)
+  PUT  /api/payments/:id/verify — Verify payment (Payment Manager/Admin)
+  PUT  /api/payments/:id/refund — Refund payment (Payment Manager/Admin)
+  GET  /api/payments/dashboard-stats   — Financial dashboard stats (Payment Manager/Admin)
+  GET  /api/payments/manager-earnings  — Ground Manager earnings (Ground Manager/Admin)
+
+Admin
+  GET    /api/admin/users      — All users (Admin)
+  PUT    /api/admin/users/:id/role    — Update user role (Admin)
+  PUT    /api/admin/users/:id/approve — Approve user (allow login) (Admin)
+  PUT    /api/admin/users/:id/reject  — Revoke approval (Admin)
+  DELETE /api/admin/users/:id  — Delete user (Admin)
+  GET    /api/admin/stats      — System statistics (Admin)
 ------------------------------------------------
- 
+
+8. FRONTEND ROUTES & UI
+
+Public:
+  /              — Home
+  /login         — Login
+  /register      — Register (role selection for demo)
+
+Protected by role (redirect to /login if not logged in):
+  /grounds           — Ground list (user); search, filters; “Under maintenance” and Unavailable for inactive
+  /book/:groundId    — Book ground (user); single-slot or time-range; shows “Under maintenance” and blocks form if inactive
+  /my-bookings       — User bookings and reviews (user)
+  /payment/:bookingId — Make payment (user); amount = booking total
+  /my-payments       — User payments (user)
+  /profile          — Profile view/edit, password toggle (all roles)
+  /ground-manager    — Ground Manager dashboard: Create, My Grounds (list, approve/reject, reviews, maintenance toggle, bulk delete)
+  /payment-manager   — Payment Manager dashboard: payments, verify, refund, stats
+  /admin             — Admin dashboard: users (approve/reject, roles, delete), stats, financial analytics
+
+Navigation:
+  Single themed navbar (purple gradient). When logged in: Home, role-specific links (Grounds / My Bookings / My Payments for user; Ground Manager / Payment Manager / Admin for respective roles), Profile, user name and role, Logout. When not logged in: Home, Login, Register.
+------------------------------------------------

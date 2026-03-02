@@ -182,18 +182,32 @@ const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user with sanitized and validated data
-    // Note: Minimal database changes - only adding phone field to existing schema
+    // Non-admin roles require admin approval before first login
+    const assignedRole = role || 'user';
+    const approved = assignedRole === 'admin';
+
     const user = await User.create({
       name: sanitizedName,
       email: sanitizedEmail,
       phone: sanitizedPhone,
       password: hashedPassword,
-      // Allow role override for demo purposes (e.g., admin, groundManager, paymentManager)
-      role: role || 'user',
+      role: assignedRole,
+      approved,
     });
 
-    // Return user data (excluding password for security)
+    // Non-admin users need admin approval before first login; do not issue token yet
+    if (!approved) {
+      return res.status(201).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        approved: false,
+        message: 'Registration successful. Your account is pending approval. You will be able to log in after an administrator approves your account.',
+      });
+    }
+
     return res.status(201).json({
       _id: user._id,
       name: user.name,
@@ -249,6 +263,13 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    // Non-admin users must be approved by admin before they can log in
+    if (user.role !== 'admin' && user.approved === false) {
+      return res.status(403).json({
+        message: 'Your account is pending approval. Please wait for an administrator to approve your account.',
+      });
+    }
+
     return res.json({
       _id: user._id,
       name: user.name,
@@ -271,8 +292,88 @@ const getMe = async (req, res) => {
   return res.json(req.user);
 };
 
+// @desc    Update profile (name, email, phone, optional password)
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const { name, email, phone, currentPassword, newPassword } = req.body;
+
+    if (name !== undefined) {
+      const sanitizedName = sanitizeInput(name);
+      if (!sanitizedName || sanitizedName.length < 2) {
+        return res.status(400).json({ message: 'Name must be at least 2 characters long' });
+      }
+      user.name = sanitizedName;
+    }
+
+    if (email !== undefined) {
+      const sanitizedEmail = email.trim().toLowerCase();
+      const emailValidation = validateEmailFormat(sanitizedEmail);
+      if (!emailValidation.isValid) {
+        return res.status(400).json({ message: emailValidation.message });
+      }
+      const existingUser = await User.findOne({ email: sanitizedEmail, _id: { $ne: req.user._id } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'User already exists with this email' });
+      }
+      user.email = sanitizedEmail;
+    }
+
+    if (phone !== undefined) {
+      const phoneValidation = validatePhoneNumber(phone);
+      if (!phoneValidation.isValid) {
+        return res.status(400).json({ message: phoneValidation.message });
+      }
+      user.phone = phoneValidation.sanitized;
+    }
+
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ message: 'Current password is required to set a new password' });
+      }
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Current password is incorrect' });
+      }
+      const passwordValidation = validatePasswordStrength(newPassword);
+      if (!passwordValidation.isValid) {
+        return res.status(400).json({ message: passwordValidation.message });
+      }
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(newPassword, salt);
+    }
+
+    await user.save();
+
+    return res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    if (error.code === 11000 && error.keyPattern?.email) {
+      return res.status(400).json({ message: 'User already exists with this email' });
+    }
+    if (error.name === 'ValidationError') {
+      const firstError = Object.values(error.errors)[0];
+      return res.status(400).json({ message: firstError?.message || 'Validation error' });
+    }
+    return res.status(500).json({ message: 'Server error while updating profile' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getMe,
+  updateProfile,
 };

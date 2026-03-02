@@ -127,7 +127,13 @@ function Login() {
       } else {
         const { token, ...userData } = data;
         login(userData, token);
-        navigate('/');
+        // Redirect to role-specific default page
+        const role = userData?.role;
+        if (role === 'user') navigate('/grounds');
+        else if (role === 'groundManager') navigate('/ground-manager');
+        else if (role === 'paymentManager') navigate('/payment-manager');
+        else if (role === 'admin') navigate('/admin');
+        else navigate('/');
       }
     } catch (err) {
       setError('Something went wrong. Please try again.');

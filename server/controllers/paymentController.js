@@ -46,10 +46,15 @@ const createPayment = async (req, res) => {
     // Generate a simulated transaction ID
     const transactionID = `TXN${Date.now()}${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-    // Create payment
+    const amount = booking.amount != null && booking.amount > 0
+      ? booking.amount
+      : (booking.timeSlots && booking.timeSlots.length
+          ? booking.timeSlots.length * booking.groundID.pricePerSlot
+          : booking.groundID.pricePerSlot);
+
     const payment = await Payment.create({
       bookingID,
-      amount: booking.groundID.pricePerSlot,
+      amount,
       paymentMethod,
       transactionID,
       paymentStatus: 'Success', // Simulated - always succeeds

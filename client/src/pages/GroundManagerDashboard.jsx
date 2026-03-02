@@ -345,6 +345,32 @@ function GroundManagerDashboard() {
     }
   };
 
+  const handleToggleActive = async (ground) => {
+    setError('');
+    try {
+      const res = await fetch(`http://localhost:5000/api/grounds/${ground._id}`, {
+        method: 'PUT',
+        headers: authHeaders,
+        body: JSON.stringify({
+          groundName: ground.groundName,
+          location: ground.location,
+          pricePerSlot: ground.pricePerSlot,
+          availableSlots: ground.availableSlots || [],
+          photo: ground.photo || '',
+          isActive: !ground.isActive,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || 'Failed to update ground status');
+      } else {
+        loadMyGrounds();
+      }
+    } catch (err) {
+      setError('Something went wrong while updating status');
+    }
+  };
+
   const toggleSelect = (id) => {
     setSelectedIds((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
@@ -1445,7 +1471,19 @@ function GroundManagerDashboard() {
                             )}
                             <div style={styles.groundInfo}>
                               <div>
-                                <div style={styles.groundName}>{ground.groundName}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                  <div style={styles.groundName}>{ground.groundName}</div>
+                                  <span style={{
+                                    padding: '4px 10px',
+                                    borderRadius: '20px',
+                                    fontSize: '12px',
+                                    fontWeight: '600',
+                                    backgroundColor: ground.isActive !== false ? '#D1FAE5' : '#FEF3C7',
+                                    color: ground.isActive !== false ? '#059669' : '#D97706',
+                                  }}>
+                                    {ground.isActive !== false ? 'Active' : 'Under maintenance'}
+                                  </span>
+                                </div>
                                 <div style={styles.groundMeta}>
                                   <LocationIcon />
                                   {ground.location}
@@ -1458,6 +1496,17 @@ function GroundManagerDashboard() {
                               <div>
                                 <div style={styles.groundPrice}>₹{ground.pricePerSlot}/slot</div>
                                 <div style={styles.groundActions}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleActive(ground)}
+                                    style={{
+                                      ...styles.actionButton,
+                                      backgroundColor: ground.isActive !== false ? '#FEF3C7' : '#D1FAE5',
+                                      color: ground.isActive !== false ? '#D97706' : '#059669',
+                                    }}
+                                  >
+                                    {ground.isActive !== false ? 'Set under maintenance' : 'Activate'}
+                                  </button>
                                   <button
                                     onClick={() => handleEdit(ground)}
                                     style={{ ...styles.actionButton, ...styles.editButton }}

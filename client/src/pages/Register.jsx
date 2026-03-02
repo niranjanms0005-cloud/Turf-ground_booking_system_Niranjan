@@ -216,6 +216,7 @@ function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [error, setError] = useState(''); // General error
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -322,6 +323,7 @@ function Register() {
     }
     
     setLoading(true);
+    setSuccessMessage('');
 
     try {
       const res = await fetch('http://localhost:5000/api/auth/register', {
@@ -337,9 +339,20 @@ function Register() {
       if (!res.ok) {
         setError(data.message || 'Registration failed');
       } else {
-        const { token, ...userData } = data;
-        login(userData, token);
-        navigate('/');
+        const { token, message, ...userData } = data;
+        if (token) {
+          login({ ...userData }, token);
+          const role = userData?.role;
+          if (role === 'user') navigate('/grounds');
+          else if (role === 'groundManager') navigate('/ground-manager');
+          else if (role === 'paymentManager') navigate('/payment-manager');
+          else if (role === 'admin') navigate('/admin');
+          else navigate('/');
+        } else {
+          setError('');
+          setSuccessMessage(message || 'Registration successful. Your account is pending approval. You can log in after an administrator approves your account. Redirecting to login...');
+          setTimeout(() => navigate('/login'), 3500);
+        }
       }
     } catch (err) {
       setError('Something went wrong. Please try again.');
@@ -518,6 +531,15 @@ function Register() {
       border: '1px solid #FECACA',
       borderRadius: '8px',
       color: '#DC2626',
+      fontSize: '13px',
+      textAlign: 'center',
+    },
+    successMessage: {
+      padding: '10px 14px',
+      backgroundColor: '#D1FAE5',
+      border: '1px solid #A7F3D0',
+      borderRadius: '8px',
+      color: '#059669',
       fontSize: '13px',
       textAlign: 'center',
     },
@@ -716,6 +738,8 @@ function Register() {
 
             {/* Error Message */}
             {error && <div style={styles.errorMessage}>{error}</div>}
+            {/* Success (e.g. pending approval) */}
+            {successMessage && <div style={styles.successMessage}>{successMessage}</div>}
 
             {/* Submit Button */}
             <button

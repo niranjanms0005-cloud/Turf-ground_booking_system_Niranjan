@@ -1,11 +1,11 @@
 const Ground = require('../models/Ground');
 
-// @desc    Get all active grounds
+// @desc    Get all grounds (active and inactive; inactive still listed but not bookable)
 // @route   GET /api/grounds
 // @access  Public
 const getGrounds = async (req, res) => {
   try {
-    const grounds = await Ground.find({ isActive: true }).populate('managerID', 'name email role');
+    const grounds = await Ground.find({}).populate('managerID', 'name email role');
     return res.json(grounds);
   } catch (error) {
     console.error('Get grounds error:', error);
@@ -13,14 +13,14 @@ const getGrounds = async (req, res) => {
   }
 };
 
-// @desc    Get single ground by ID
+// @desc    Get single ground by ID (returns inactive grounds too so UI can show "Under maintenance")
 // @route   GET /api/grounds/:id
 // @access  Public
 const getGroundById = async (req, res) => {
   try {
     const ground = await Ground.findById(req.params.id).populate('managerID', 'name email role');
 
-    if (!ground || !ground.isActive) {
+    if (!ground) {
       return res.status(404).json({ message: 'Ground not found' });
     }
 

@@ -40,6 +40,11 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin', 'groundManager', 'paymentManager'],
       default: 'user',
     },
+    // For non-admin roles: account must be approved by admin before first login
+    approved: {
+      type: Boolean,
+      default: false,
+    },
     wallet: {
       type: Number,
       default: 0,

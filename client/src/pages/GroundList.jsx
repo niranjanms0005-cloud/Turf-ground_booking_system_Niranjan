@@ -688,7 +688,21 @@ function GroundList() {
                   </div>
                 </div>
                 <div style={styles.groundInfo}>
-                  <h3 style={styles.groundName}>{ground.groundName}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <h3 style={styles.groundName}>{ground.groundName}</h3>
+                    {ground.isActive === false && (
+                      <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        backgroundColor: '#FEF3C7',
+                        color: '#D97706',
+                      }}>
+                        Under maintenance
+                      </span>
+                    )}
+                  </div>
                   <div style={styles.groundLocation}>
                     <LocationIcon />
                     {ground.location}
@@ -701,7 +715,17 @@ function GroundList() {
                         <span style={styles.priceUnit}>/slot</span>
                       </div>
                     </div>
-                    {isLoggedIn ? (
+                    {ground.isActive === false ? (
+                      <span style={{
+                        ...styles.bookButton,
+                        opacity: 0.8,
+                        cursor: 'not-allowed',
+                        pointerEvents: 'none',
+                        backgroundColor: '#9CA3AF',
+                      }}>
+                        Unavailable
+                      </span>
+                    ) : isLoggedIn ? (
                       <Link
                         to={`/book/${ground._id}`}
                         style={{

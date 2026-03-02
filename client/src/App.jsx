@@ -16,44 +16,89 @@ import Profile from './pages/Profile.jsx';
 function App() {
   const { user, isLoggedIn, logout } = useAuth();
 
+  // Themed navbar: single bar with purple gradient, only when logged in
+  const themedNavStyles = {
+    nav: {
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '16px 24px',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      flexWrap: 'wrap',
+      gap: '12px',
+    },
+    left: { display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' },
+    link: {
+      color: 'rgba(255,255,255,0.95)',
+      textDecoration: 'none',
+      fontWeight: '600',
+      fontSize: '15px',
+    },
+    userInfo: { color: 'rgba(255,255,255,0.9)', fontSize: '14px', marginRight: '12px' },
+    logoutBtn: {
+      background: 'rgba(255,255,255,0.2)',
+      color: '#fff',
+      border: '1px solid rgba(255,255,255,0.4)',
+      padding: '8px 16px',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      fontWeight: '600',
+      fontSize: '14px',
+    },
+    guestLinks: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '16px',
+    },
+    guestLink: {
+      color: 'rgba(255,255,255,0.95)',
+      textDecoration: 'none',
+      fontWeight: '600',
+      fontSize: '15px',
+    },
+  };
+
   return (
       <div>
-      <nav style={{ padding: '1rem', borderBottom: '1px solid #ddd', marginBottom: '1rem' }}>
-        <Link to="/" style={{ marginRight: '1rem' }}>Home</Link>
-
-        {/* Show navigation links based on role, only after login */}
-        {isLoggedIn && user?.role === 'user' && (
-          <>
-            <Link to="/grounds" style={{ marginRight: '1rem' }}>Grounds</Link>
-            <Link to="/my-bookings" style={{ marginRight: '1rem' }}>My Bookings</Link>
-            <Link to="/my-payments" style={{ marginRight: '1rem' }}>My Payments</Link>
-          </>
-        )}
-        {isLoggedIn && user?.role === 'groundManager' && (
-          <Link to="/ground-manager" style={{ marginRight: '1rem' }}>Ground Manager</Link>
-        )}
-        {isLoggedIn && user?.role === 'paymentManager' && (
-          <Link to="/payment-manager" style={{ marginRight: '1rem' }}>Payment Manager</Link>
-        )}
-        {isLoggedIn && user?.role === 'admin' && (
-          <Link to="/admin" style={{ marginRight: '1rem' }}>Admin</Link>
-        )}
-
-        {isLoggedIn ? (
-          <>
-            <Link to="/profile" style={{ marginRight: '1rem' }}>Profile</Link>
-            <span style={{ marginRight: '1rem' }}>
-              Logged in as: {user?.name} ({user?.role})
+      {isLoggedIn ? (
+        <nav style={themedNavStyles.nav}>
+          <div style={themedNavStyles.left}>
+            <Link to="/" style={themedNavStyles.link}>Home</Link>
+            {user?.role === 'user' && (
+              <>
+                <Link to="/grounds" style={themedNavStyles.link}>Grounds</Link>
+                <Link to="/my-bookings" style={themedNavStyles.link}>My Bookings</Link>
+                <Link to="/my-payments" style={themedNavStyles.link}>My Payments</Link>
+              </>
+            )}
+            {user?.role === 'groundManager' && (
+              <Link to="/ground-manager" style={themedNavStyles.link}>Ground Manager</Link>
+            )}
+            {user?.role === 'paymentManager' && (
+              <Link to="/payment-manager" style={themedNavStyles.link}>Payment Manager</Link>
+            )}
+            {user?.role === 'admin' && (
+              <Link to="/admin" style={themedNavStyles.link}>Admin</Link>
+            )}
+            <Link to="/profile" style={themedNavStyles.link}>Profile</Link>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={themedNavStyles.userInfo}>
+              {user?.name} ({user?.role})
             </span>
-            <button onClick={logout}>Logout</button>
-          </>
-        ) : (
-          <>
-            <Link to="/login" style={{ marginRight: '1rem' }}>Login</Link>
-            <Link to="/register">Register</Link>
-          </>
-        )}
-      </nav>
+            <button type="button" style={themedNavStyles.logoutBtn} onClick={logout}>Logout</button>
+          </div>
+        </nav>
+      ) : (
+        <nav style={themedNavStyles.nav}>
+          <Link to="/" style={themedNavStyles.link}>Home</Link>
+          <div style={themedNavStyles.guestLinks}>
+            <Link to="/login" style={themedNavStyles.guestLink}>Login</Link>
+            <Link to="/register" style={themedNavStyles.guestLink}>Register</Link>
+          </div>
+        </nav>
+      )}
 
       <Routes>
         <Route path="/" element={<Home />} />

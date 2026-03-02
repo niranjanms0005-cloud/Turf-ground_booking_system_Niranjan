@@ -699,8 +699,14 @@ function MyBookings() {
                         <span style={styles.detailValue}>{booking.timeSlot}</span>
                       </div>
                       <div style={styles.detailItem}>
-                        <span style={styles.detailLabel}>Price</span>
-                        <span style={styles.priceValue}>₹{booking.groundID?.pricePerSlot || 'N/A'}</span>
+                        <span style={styles.detailLabel}>Amount</span>
+                        <span style={styles.priceValue}>
+                          ₹{(booking.amount != null && booking.amount > 0)
+                            ? Number(booking.amount).toLocaleString('en-IN')
+                            : (booking.timeSlots?.length
+                                ? (booking.timeSlots.length * (booking.groundID?.pricePerSlot || 0)).toLocaleString('en-IN')
+                                : (booking.groundID?.pricePerSlot ?? 'N/A'))}
+                        </span>
                       </div>
                     </div>
 

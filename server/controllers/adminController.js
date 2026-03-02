@@ -174,9 +174,77 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// @desc    Approve user account (allow login for non-admin roles)
+// @route   PUT /api/admin/users/:id/approve
+// @access  Private (Admin)
+const approveUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.approved = true;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'User approved successfully',
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        approved: user.approved,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Reject / revoke approval (user cannot log in until approved again)
+// @route   PUT /api/admin/users/:id/reject
+// @access  Private (Admin)
+const rejectUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (id === req.user._id.toString()) {
+      return res.status(400).json({ message: 'You cannot reject your own account' });
+    }
+
+    const user = await User.findById(id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.approved = false;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'User approval revoked',
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        approved: user.approved,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getAllUsers,
   updateUserRole,
   getSystemStats,
   deleteUser,
+  approveUser,
+  rejectUser,
 };

@@ -106,7 +106,11 @@ function Payment() {
   }
 
   const bookingDate = new Date(booking.bookingDate).toLocaleDateString();
-  const amount = booking.groundID?.pricePerSlot || 0;
+  const amount = (booking.amount != null && booking.amount > 0)
+    ? booking.amount
+    : (booking.timeSlots?.length
+        ? booking.timeSlots.length * (booking.groundID?.pricePerSlot || 0)
+        : (booking.groundID?.pricePerSlot || 0));
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', padding: '2rem' }}>

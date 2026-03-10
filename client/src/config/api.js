@@ -37,6 +37,9 @@ export const API_ENDPOINTS = {
     verify: (id) => `${API_BASE_URL}/api/payments/${id}/verify`,
     refund: (id) => `${API_BASE_URL}/api/payments/${id}/refund`,
   },
+  public: {
+    contact: `${API_BASE_URL}/api/public/contact`,
+  },
   admin: {
     users: `${API_BASE_URL}/api/admin/users`,
     updateUserRole: (id) => `${API_BASE_URL}/api/admin/users/${id}/role`,

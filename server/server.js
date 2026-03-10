@@ -8,6 +8,7 @@ const groundRoutes = require('./routes/groundRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const publicRoutes = require('./routes/publicRoutes');
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use('/api/grounds', groundRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/public', publicRoutes);
 
 // Error Handler (must be after all routes)
 app.use(errorHandler);

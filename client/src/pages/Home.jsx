@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API_ENDPOINTS } from '../config/api';
 
 // Hero Illustration - Sports/Booking themed
 const HeroIllustration = () => (
@@ -108,6 +109,20 @@ const UsersIcon = () => (
 function Home() {
   const [hoveredButton, setHoveredButton] = useState(null);
   const [hoveredFeature, setHoveredFeature] = useState(null);
+  const [contactInfo, setContactInfo] = useState(null);
+
+  useEffect(() => {
+    const fetchContact = async () => {
+      try {
+        const res = await fetch(API_ENDPOINTS.public.contact);
+        const data = await res.json();
+        if (res.ok && data.data) setContactInfo(data.data);
+      } catch {
+        setContactInfo({ name: 'Admin', email: '' });
+      }
+    };
+    fetchContact();
+  }, []);
 
   const styles = {
     pageWrapper: {
@@ -305,6 +320,60 @@ function Home() {
       fontSize: '14px',
       color: '#9CA3AF',
     },
+    contactSection: {
+      backgroundColor: 'rgba(255, 255, 255, 0.98)',
+      padding: '48px 50px 40px',
+      borderTop: '1px solid #F3F4F6',
+    },
+    contactInner: {
+      maxWidth: '900px',
+      margin: '0 auto',
+      textAlign: 'center',
+    },
+    contactTitle: {
+      fontSize: '22px',
+      fontWeight: '700',
+      color: '#1F2937',
+      marginBottom: '8px',
+    },
+    contactSubtitle: {
+      fontSize: '14px',
+      color: '#6B7280',
+      marginBottom: '24px',
+    },
+    contactCard: {
+      display: 'inline-block',
+      padding: '20px 32px',
+      backgroundColor: '#F8F5FC',
+      borderRadius: '14px',
+      border: '1px solid #E8E0F0',
+      textAlign: 'left',
+    },
+    contactLabel: {
+      fontSize: '12px',
+      fontWeight: '600',
+      color: '#6B7280',
+      textTransform: 'uppercase',
+      letterSpacing: '0.5px',
+      marginBottom: '4px',
+    },
+    contactName: {
+      fontSize: '18px',
+      fontWeight: '600',
+      color: '#1F2937',
+      marginBottom: '12px',
+    },
+    contactEmail: {
+      fontSize: '16px',
+      color: '#7C5CFC',
+      fontWeight: '600',
+      textDecoration: 'none',
+    },
+    contactPhone: {
+      fontSize: '14px',
+      color: '#6B7280',
+      marginTop: '8px',
+    },
   };
 
   const features = [
@@ -438,6 +507,32 @@ function Home() {
               <p style={styles.featureDescription}>{feature.description}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Contact Us */}
+      <section style={styles.contactSection}>
+        <div style={styles.contactInner}>
+          <h2 style={styles.contactTitle}>Contact Us</h2>
+          <p style={styles.contactSubtitle}>
+            For support or queries, reach out to the administrator.
+          </p>
+          {contactInfo && (
+            <div style={styles.contactCard}>
+              <div style={styles.contactLabel}>Administrator</div>
+              <div style={styles.contactName}>{contactInfo.name}</div>
+              {contactInfo.email ? (
+                <a href={`mailto:${contactInfo.email}`} style={styles.contactEmail}>
+                  {contactInfo.email}
+                </a>
+              ) : (
+                <span style={{ ...styles.contactEmail, color: '#6B7280' }}>No email set</span>
+              )}
+              {contactInfo.phone && (
+                <div style={styles.contactPhone}>Phone: {contactInfo.phone}</div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 

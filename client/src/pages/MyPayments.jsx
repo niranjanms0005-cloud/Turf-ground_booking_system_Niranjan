@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { API_ENDPOINTS } from '../config/api.js';
 
 // Icon Components
 const PaymentIcon = () => (
@@ -79,7 +80,7 @@ function MyPayments() {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch('http://localhost:5000/api/payments/user', {
+        const res = await fetch(API_ENDPOINTS.payments.userPayments, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -566,21 +567,24 @@ function MyPayments() {
                       <div>
                         <div style={styles.refundedBadge}>
                           <RefundIcon />
-                          Refunded by {p.verifiedBy?.name || 'N/A'}
+                          Refunded by {p.refundedBy?.name || 'N/A'}
                         </div>
                         <div style={styles.refundDetails}>
                           Refunded at: {p.updatedAt ? new Date(p.updatedAt).toLocaleString('en-IN') : 'N/A'}
+                        </div>
+                        <div style={styles.refundDetails}>
+                          Payment Manager Email: {p.refundedBy?.email || 'N/A'}
                         </div>
                       </div>
                     ) : p.verifiedBy ? (
                       <div style={styles.verifiedBadge}>
                         <CheckIcon />
-                        Verified by {p.verifiedBy.name}
+                        Verified by {p.verifiedBy.name} ({p.verifiedBy.email || 'N/A'})
                       </div>
                     ) : (
                       <div style={styles.verificationInfo}>
                         <UserIcon />
-                        Pending verification
+                        Pending verification (Payment manager email will appear after verification)
                       </div>
                     )}
                   </div>

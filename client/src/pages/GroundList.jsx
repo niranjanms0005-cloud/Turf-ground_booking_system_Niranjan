@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_ENDPOINTS } from '../config/api.js';
 
 // Icon Components
 const SearchIcon = () => (
@@ -69,9 +70,19 @@ function GroundList() {
 
   // Filters / search state
   const [search, setSearch] = useState('');
+  // Location filter is driven by a debounced typeahead input
+  const [locationInput, setLocationInput] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+
+  // Debounce location typing (small delay before applying filter)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setLocationFilter(locationInput.trim());
+    }, 250);
+    return () => clearTimeout(t);
+  }, [locationInput]);
 
   useEffect(() => {
     const fetchGrounds = async () => {
@@ -79,7 +90,7 @@ function GroundList() {
       setError('');
 
       try {
-        const res = await fetch('http://localhost:5000/api/grounds');
+        const res = await fetch(API_ENDPOINTS.grounds.list);
         const data = await res.json();
 
         if (!res.ok) {
@@ -105,15 +116,24 @@ function GroundList() {
   const filteredGrounds = useMemo(() => {
     return grounds.filter((g) => {
       if (search && !g.groundName.toLowerCase().includes(search.toLowerCase())) return false;
-      if (locationFilter && g.location !== locationFilter) return false;
+      if (locationFilter && !String(g.location || '').toLowerCase().includes(locationFilter.toLowerCase())) return false;
       if (minPrice && Number(g.pricePerSlot) < Number(minPrice)) return false;
       if (maxPrice && Number(g.pricePerSlot) > Number(maxPrice)) return false;
       return true;
     });
   }, [grounds, search, locationFilter, minPrice, maxPrice]);
 
+  const locationSuggestions = useMemo(() => {
+    const q = locationInput.trim().toLowerCase();
+    if (!q) return [];
+    return uniqueLocations
+      .filter((loc) => String(loc).toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [uniqueLocations, locationInput]);
+
   const resetFilters = () => {
     setSearch('');
+    setLocationInput('');
     setLocationFilter('');
     setMinPrice('');
     setMaxPrice('');
@@ -251,6 +271,28 @@ function GroundList() {
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'right 14px center',
       paddingRight: '40px',
+    },
+    suggestionBox: {
+      position: 'absolute',
+      top: 'calc(100% + 6px)',
+      left: 0,
+      right: 0,
+      backgroundColor: '#FFFFFF',
+      border: '1px solid #E5E7EB',
+      borderRadius: '12px',
+      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
+      overflow: 'hidden',
+      zIndex: 50,
+    },
+    suggestionItem: {
+      width: '100%',
+      textAlign: 'left',
+      padding: '10px 12px',
+      border: 'none',
+      background: 'transparent',
+      cursor: 'pointer',
+      fontSize: '14px',
+      color: '#1F2937',
     },
     priceInput: {
       width: '100%',
@@ -598,18 +640,32 @@ function GroundList() {
                 style={styles.searchInput}
               />
             </div>
-            <select
-              value={locationFilter}
-              onChange={(e) => setLocationFilter(e.target.value)}
-              style={styles.selectInput}
-            >
-              <option value="">All Locations</option>
-              {uniqueLocations.map((loc) => (
-                <option key={loc} value={loc}>
-                  {loc}
-                </option>
-              ))}
-            </select>
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="Search location..."
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
+                style={styles.selectInput}
+              />
+              {locationSuggestions.length > 0 && (
+                <div style={styles.suggestionBox}>
+                  {locationSuggestions.map((loc) => (
+                    <button
+                      key={loc}
+                      type="button"
+                      onClick={() => {
+                        setLocationInput(loc);
+                        setLocationFilter(loc);
+                      }}
+                      style={styles.suggestionItem}
+                    >
+                      {loc}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <input
               type="number"
               placeholder="Min Price"

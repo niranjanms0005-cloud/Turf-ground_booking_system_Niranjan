@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_URL, API_ENDPOINTS } from '../config/api.js';
 
 // Get slots that overlap [fromTime, toTime]. Includes any slot that overlaps the range (e.g. 09:30–12:30 includes 09:00–10:00 and 12:00–13:00)
 const getSlotsInRange = (allSlots, fromTime, toTime) => {
@@ -40,7 +41,7 @@ function BookGround() {
 
     const fetchGround = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/grounds/${groundId}`);
+        const res = await fetch(API_ENDPOINTS.grounds.detail(groundId));
         const data = await res.json();
         if (res.ok) {
           setGround(data);
@@ -62,7 +63,7 @@ function BookGround() {
       const checkAvailability = async () => {
         try {
           const res = await fetch(
-            `http://localhost:5000/api/bookings/availability?groundId=${groundId}&bookingDate=${selectedDate}`
+            `${API_ENDPOINTS.bookings.availability}?groundId=${groundId}&bookingDate=${selectedDate}`
           );
           const data = await res.json();
           if (res.ok) {
@@ -118,7 +119,7 @@ function BookGround() {
         : { groundID: groundId, bookingDate: selectedDate, timeFrom: fromNorm, timeTo: toNorm };
 
     try {
-      const res = await fetch('http://localhost:5000/api/bookings', {
+      const res = await fetch(API_ENDPOINTS.bookings.create, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

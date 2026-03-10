@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_ENDPOINTS } from '../config/api.js';
 import { useNavigate } from 'react-router-dom';
 
 // Icon Components
@@ -96,7 +97,7 @@ function PaymentManagerDashboard() {
     if (!isPaymentManager) return;
     setLoadingStats(true);
     try {
-      const res = await fetch('http://localhost:5000/api/payments/dashboard-stats', {
+      const res = await fetch(API_ENDPOINTS.payments.dashboardStats, {
         headers: authHeaders,
       });
       const data = await res.json();
@@ -117,7 +118,7 @@ function PaymentManagerDashboard() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/payments', {
+      const res = await fetch(API_ENDPOINTS.payments.allPayments, {
         headers: authHeaders,
       });
       const data = await res.json();
@@ -142,7 +143,7 @@ function PaymentManagerDashboard() {
 
   const handleVerify = async (paymentId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/payments/${paymentId}/verify`, {
+      const res = await fetch(API_ENDPOINTS.payments.verify(paymentId), {
         method: 'PUT',
         headers: authHeaders,
       });
@@ -163,7 +164,7 @@ function PaymentManagerDashboard() {
     if (!window.confirm('Are you sure you want to refund this payment?')) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/payments/${paymentId}/refund`, {
+      const res = await fetch(API_ENDPOINTS.payments.refund(paymentId), {
         method: 'PUT',
         headers: authHeaders,
       });

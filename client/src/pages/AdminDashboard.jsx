@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_URL, API_ENDPOINTS } from '../config/api.js';
 import { useNavigate } from 'react-router-dom';
 
 // Icon Components
@@ -157,7 +158,7 @@ function AdminDashboard() {
   const loadStats = async () => {
     setLoadingStats(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/stats', {
+      const res = await fetch(API_ENDPOINTS.admin.stats, {
         headers: authHeaders,
       });
       const data = await res.json();
@@ -177,7 +178,7 @@ function AdminDashboard() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/admin/users', {
+      const res = await fetch(API_ENDPOINTS.admin.users, {
         headers: authHeaders,
       });
       const data = await res.json();
@@ -196,7 +197,7 @@ function AdminDashboard() {
   const loadFinancialStats = async () => {
     setLoadingFinancial(true);
     try {
-      const res = await fetch('http://localhost:5000/api/payments/dashboard-stats', {
+      const res = await fetch(API_ENDPOINTS.payments.dashboardStats, {
         headers: authHeaders,
       });
       const data = await res.json();
@@ -212,7 +213,7 @@ function AdminDashboard() {
 
   const loadPayments = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/payments', {
+      const res = await fetch(API_ENDPOINTS.payments.allPayments, {
         headers: authHeaders,
       });
       const data = await res.json();
@@ -236,7 +237,7 @@ function AdminDashboard() {
 
   const handleRoleChange = async (userId, newRole) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/role`, {
+      const res = await fetch(API_ENDPOINTS.admin.updateUserRole(userId), {
         method: 'PUT',
         headers: authHeaders,
         body: JSON.stringify({ role: newRole }),
@@ -257,7 +258,7 @@ function AdminDashboard() {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
+      const res = await fetch(API_ENDPOINTS.admin.deleteUser(userId), {
         method: 'DELETE',
         headers: authHeaders,
       });
@@ -275,7 +276,7 @@ function AdminDashboard() {
 
   const handleApproveUser = async (userId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/approve`, {
+      const res = await fetch(API_ENDPOINTS.admin.approveUser(userId), {
         method: 'PUT',
         headers: authHeaders,
       });
@@ -294,7 +295,7 @@ function AdminDashboard() {
   const handleRejectUser = async (userId) => {
     if (!window.confirm('Revoke this user\'s access? They will not be able to log in until approved again.')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/reject`, {
+      const res = await fetch(API_ENDPOINTS.admin.rejectUser(userId), {
         method: 'PUT',
         headers: authHeaders,
       });

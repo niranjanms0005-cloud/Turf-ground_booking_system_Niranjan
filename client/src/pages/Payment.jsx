@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_ENDPOINTS } from '../config/api.js';
 
 function Payment() {
   const { bookingId } = useParams();
@@ -21,7 +22,7 @@ function Payment() {
 
     const fetchBooking = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/bookings/user', {
+        const res = await fetch(API_ENDPOINTS.bookings.userBookings, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -61,7 +62,7 @@ function Payment() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/payments', {
+      const res = await fetch(API_ENDPOINTS.payments.create, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

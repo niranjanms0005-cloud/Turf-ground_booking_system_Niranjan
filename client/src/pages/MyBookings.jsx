@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_ENDPOINTS } from '../config/api.js';
 
 // Icon Components
 const BookingIcon = () => (
@@ -77,7 +78,7 @@ function MyBookings() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/bookings/user', {
+      const res = await fetch(API_ENDPOINTS.bookings.userBookings, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -131,7 +132,7 @@ function MyBookings() {
     if (!draft || !draft.rating) return alert('Please select a rating');
 
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/${bookingId}/review`, {
+      const res = await fetch(API_ENDPOINTS.bookings.review(bookingId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

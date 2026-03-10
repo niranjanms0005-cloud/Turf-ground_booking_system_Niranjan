@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config/api.js';
 
 // Icon Components
 const GroundsIcon = () => (
@@ -157,7 +158,7 @@ function GroundManagerDashboard() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/grounds/manager/my-grounds', {
+      const res = await fetch(`${API_URL}/api/grounds/manager/my-grounds`, {
         headers: authHeaders,
       });
       const data = await res.json();
@@ -177,7 +178,7 @@ function GroundManagerDashboard() {
   const loadBookingsForGround = async (groundId) => {
     setLoadingBookings((prev) => ({ ...prev, [groundId]: true }));
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/ground/${groundId}`, {
+      const res = await fetch(`${API_URL}/api/bookings/ground/${groundId}`, {
         headers: authHeaders,
       });
       const data = await res.json();
@@ -194,7 +195,7 @@ function GroundManagerDashboard() {
 
   const handleApprove = async (bookingId, groundId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/${bookingId}/approve`, {
+      const res = await fetch(`${API_URL}/api/bookings/${bookingId}/approve`, {
         method: 'PUT',
         headers: authHeaders,
       });
@@ -212,7 +213,7 @@ function GroundManagerDashboard() {
   const handleReject = async (bookingId, groundId) => {
     if (!window.confirm('Are you sure you want to reject this booking?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/${bookingId}/reject`, {
+      const res = await fetch(`${API_URL}/api/bookings/${bookingId}/reject`, {
         method: 'PUT',
         headers: authHeaders,
       });
@@ -231,7 +232,7 @@ function GroundManagerDashboard() {
     if (!isManager) return;
     setLoadingEarnings(true);
     try {
-      const res = await fetch('http://localhost:5000/api/payments/manager-earnings', {
+      const res = await fetch(`${API_URL}/api/payments/manager-earnings`, {
         headers: authHeaders,
       });
       const data = await res.json();
@@ -290,8 +291,8 @@ function GroundManagerDashboard() {
     };
 
     const url = editingId
-      ? `http://localhost:5000/api/grounds/${editingId}`
-      : 'http://localhost:5000/api/grounds';
+      ? `${API_URL}/api/grounds/${editingId}`
+      : `${API_URL}/api/grounds`;
     const method = editingId ? 'PUT' : 'POST';
 
     try {
@@ -330,7 +331,7 @@ function GroundManagerDashboard() {
 
     setError('');
     try {
-      const res = await fetch(`http://localhost:5000/api/grounds/${id}`, {
+      const res = await fetch(`${API_URL}/api/grounds/${id}`, {
         method: 'DELETE',
         headers: authHeaders,
       });
@@ -348,7 +349,7 @@ function GroundManagerDashboard() {
   const handleToggleActive = async (ground) => {
     setError('');
     try {
-      const res = await fetch(`http://localhost:5000/api/grounds/${ground._id}`, {
+      const res = await fetch(`${API_URL}/api/grounds/${ground._id}`, {
         method: 'PUT',
         headers: authHeaders,
         body: JSON.stringify({
@@ -394,7 +395,7 @@ function GroundManagerDashboard() {
     if (!window.confirm(`Are you sure you want to deactivate ${selectedIds.length} selected ground(s)?`)) return;
     try {
       const promises = selectedIds.map((id) =>
-        fetch(`http://localhost:5000/api/grounds/${id}`, { method: 'DELETE', headers: authHeaders })
+        fetch(`${API_URL}/api/grounds/${id}`, { method: 'DELETE', headers: authHeaders })
       );
       const responses = await Promise.all(promises);
       const results = await Promise.all(responses.map((r) => r.json().catch(() => ({}))));

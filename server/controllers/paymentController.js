@@ -95,6 +95,7 @@ const getUserPayments = async (req, res) => {
         ],
       })
       .populate('verifiedBy', 'name email')
+      .populate('refundedBy', 'name email')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -121,6 +122,7 @@ const getAllPayments = async (req, res) => {
         ],
       })
       .populate('verifiedBy', 'name email')
+      .populate('refundedBy', 'name email')
       .sort({ createdAt: -1 });
 
     res.json({
